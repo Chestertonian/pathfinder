@@ -8,8 +8,7 @@ Safe to re-run: clears existing location/exit data before inserting.
 WARNING: This will delete all locations and exits. Do not run on live data.
 """
 
-import db  # Your existing connection module
-
+import db  # Connection module
 
 # ------------------------------------------------------------------
 # Location definitions
@@ -18,114 +17,43 @@ import db  # Your existing connection module
 
 LOCATIONS = [
     {
-        "name": "Ashford Town Square",
+        "name": "Immigration Entry Offices",
         "description": (
-            "The heart of Ashford, a modest frontier settlement. Cobblestones worn smooth "
-            "by years of boot traffic surround a dry stone fountain. A few locals go about "
-            "their business without paying you much attention."
+            """You stand in a long stone chamber built just within the Eastern Gate's
+            inner wall where the guards gather immigrants before releasing them into 
+            the city itself. The room is bare and functional: there are broad flagstones 
+            worn smooth, iron-barred counters where clerks record names, and high windows
+            that admit light from the outer yard beyond. People arrive here in clusters
+            - caravans finishing long journeys, travelers dusty from the road, 
+            mercenaries attempting to enter town, and refugees trying to decide what 
+            story to tell the city. Guards move through them with practiced indifference, 
+            not unkind, yet entirely focused on procedure, while noticeboards along the walls 
+            crowd with overlapping postings for escorts, missing persons, warnings from the 
+            frontier, and requests written in hurried scripts. Nothing here tells you what 
+            you are meant to be; it only makes clear that you are known to the city."""
         ),
-        "region": "Ashford",
+        "region": "veranis",
         "is_safe": True,
         "is_settlement": True,
-        "is_outdoor": True,
-        "brightness": 3,
-        "smell": "Woodsmoke and horse manure.",
-        "sound": "Distant hammering, murmuring voices.",
-        "search": "",
-    },
-    {
-        "name": "Ashford North Gate",
-        "description": (
-            "A heavy timber gate marks the northern edge of Ashford. Two bored guards lean "
-            "against the posts. Beyond the gate, a rutted dirt road disappears into the tree line."
-        ),
-        "region": "Ashford",
-        "is_safe": True,
-        "is_settlement": True,
-        "is_outdoor": True,
-        "brightness": 3,
-        "smell": "Pine sap on the wind.",
-        "sound": "Creaking gate hinges, birdsong.",
-        "search": "",
-    },
-    {
-        "name": "The Greywood Road",
-        "description": (
-            "A lonely road threading between tall, pale-barked trees. The canopy is thick "
-            "enough to muffle sound from the settlement behind you. Wheel ruts in the mud "
-            "suggest infrequent but regular use."
-        ),
-        "region": "Greywood",
-        "is_safe": False,
-        "is_settlement": False,
-        "is_outdoor": True,
-        "brightness": 2,
-        "smell": "Damp earth and rotting leaves.",
-        "sound": "Wind through branches. Something rustles off the path.",
-        "search": "A torn piece of sacking is caught on a low branch.",
-    },
-    {
-        "name": "Greywood Depths",
-        "description": (
-            "The road thins to a track here. Trees press close on both sides and the light "
-            "dims noticeably. Animal trails branch off in several directions. This feels like "
-            "a place that does not welcome visitors."
-        ),
-        "region": "Greywood",
-        "is_safe": False,
-        "is_settlement": False,
-        "is_outdoor": True,
-        "brightness": 1,
-        "smell": "Moss, mud, and something faintly sweet that you cannot place.",
-        "sound": "Silence, mostly. The birds have stopped.",
-        "search": "Claw marks score the bark of a nearby oak, roughly at head height.",
-    },
-    {
-        "name": "Collapsed Waystation",
-        "description": (
-            "The ruin of a small stone building, long abandoned. The roof has caved in and "
-            "weeds grow through the floor. A firepit in the corner looks like it was used "
-            "within the last season, though not recently."
-        ),
-        "region": "Greywood",
-        "is_safe": False,
-        "is_settlement": False,
         "is_outdoor": False,
         "brightness": 1,
-        "smell": "Ash, mildew, and old leather.",
-        "sound": "Water dripping somewhere in the rubble.",
-        "search": "Beneath a loose flagstone you find a rusted iron ring, but nothing below it.",
-    },
-    {
-        "name": "Ashford East Road",
-        "description": (
-            "The road east out of Ashford is better maintained than the northern track. "
-            "Merchant posts mark the distance at irregular intervals. Open farmland rolls "
-            "out on either side."
-        ),
-        "region": "Ashford",
-        "is_safe": True,
-        "is_settlement": False,
-        "is_outdoor": True,
-        "brightness": 3,
-        "smell": "Cut grass and turned soil.",
-        "sound": "Crows, distant cattle.",
+        "smell": "It smells of torch smoke and unwashed bodies.",
+        "sound": "You smell distant hammering and the quiet murmur of voices.",
         "search": "",
     },
+    
     {
-        "name": "Millford Crossing",
+        "name": "Inside the Gate - Veranis",
         "description": (
-            "A stone bridge crosses a wide, shallow river here. A watermill turns slowly on "
-            "the far bank. The settlement of Millford is visible downstream, smoke rising "
-            "from its chimneys."
+            """Inside the eastern gate complex of Veranis, a broad stone courtyard opens between the gatehouse walls and low administrative buildings, where arriving traffic is briefly funneled before dispersing into the city. Wagon tracks score the flagstones in pale lines, converging toward marked lanes that separate carts, riders, and foot traffic without fully stopping movement. The air carries constant noise from wheels, shouted directions, and clerks calling out inspections while seated under narrow awnings along the edges. A battered well and a tall notice post stand among stacks of temporarily held goods, and from here travelers either turn deeper into the city or peel away toward hiring yards, inns, and the main roads leading onward through the city."""
         ),
-        "region": "Millford",
+        "region": "veranis",
         "is_safe": True,
-        "is_settlement": False,
+        "is_settlement": True,
         "is_outdoor": True,
-        "brightness": 3,
-        "smell": "River water and fresh-cut wood.",
-        "sound": "The mill wheel, rushing water, distant voices.",
+        "brightness": 0,
+        "smell": "It smells of animals.",
+        "sound": "You hear wagons as they rumble through the city. Hawkers shout their wares. At all hours, the city is busy.",
         "search": "",
     },
 ]
@@ -139,35 +67,27 @@ LOCATIONS = [
 # ------------------------------------------------------------------
 
 EXITS = [
-    # Town square <-> North gate (two-way)
-    {"from_index": 0, "to_index": 1, "direction": "north", "cost": 1, "description": "Toward the north gate."},
-    {"from_index": 1, "to_index": 0, "direction": "south", "cost": 1, "description": "Back into the town square."},
-
-    # North gate <-> Greywood Road (two-way)
-    {"from_index": 1, "to_index": 2, "direction": "north", "cost": 1, "description": "Through the gate and onto the road."},
-    {"from_index": 2, "to_index": 1, "direction": "south", "cost": 1, "description": "The road leads back toward the settlement gate."},
-
-    # Greywood Road <-> Greywood Depths (two-way)
-    {"from_index": 2, "to_index": 3, "direction": "north", "cost": 2, "description": "Deeper into the Greywood."},
-    {"from_index": 3, "to_index": 2, "direction": "south", "cost": 2, "description": "Back toward the road and the settlement."},
-
-    # Greywood Road -> Waystation (one-way visible, return is west)
-    {"from_index": 2, "to_index": 4, "direction": "east", "cost": 1, "description": "A short track leads to a ruined building."},
-    {"from_index": 4, "to_index": 2, "direction": "west", "cost": 1, "description": "Back to the main road."},
-
-    # Town square <-> East road (two-way)
-    {"from_index": 0, "to_index": 5, "direction": "east", "cost": 1, "description": "Out onto the eastern road."},
-    {"from_index": 5, "to_index": 0, "direction": "west", "cost": 1, "description": "Back into Ashford."},
-
-    # East road <-> Millford Crossing (two-way)
-    {"from_index": 5, "to_index": 6, "direction": "east", "cost": 2, "description": "The road continues toward the river crossing."},
-    {"from_index": 6, "to_index": 5, "direction": "west", "cost": 2, "description": "West along the road toward Ashford."},
+    {
+        "from_index": 0,
+        "to_index": 1,
+        "direction": "north",
+        "cost": 1,
+        "description": "",
+    },
+    {
+        "from_index": 1,
+        "to_index": 0,
+        "direction": "south",
+        "cost": 1,
+        "description": "",
+    },
 ]
 
 
 # ------------------------------------------------------------------
 # Seed functions
 # ------------------------------------------------------------------
+
 
 def clear_world(conn):
     """
@@ -219,27 +139,30 @@ def insert_exits(conn, location_ids: list[int]):
     with conn.cursor() as cur:
         for exit_def in EXITS:
             from_id = location_ids[exit_def["from_index"]]
-            to_id   = location_ids[exit_def["to_index"]]
+            to_id = location_ids[exit_def["to_index"]]
             cur.execute(
                 """
                 INSERT INTO exits (from_location, to_location, direction, cost, description)
                 VALUES (%s, %s, %s, %s, %s);
                 """,
-                (from_id, to_id, exit_def["direction"], exit_def["cost"], exit_def["description"]),
+                (
+                    from_id,
+                    to_id,
+                    exit_def["direction"],
+                    exit_def["cost"],
+                    exit_def["description"],
+                ),
             )
     conn.commit()
     print(f"Inserted {len(EXITS)} exits.")
 
 
 def seed():
-    conn = db.get_connection()
-    try:
+    with db.get_connection() as conn:
         clear_world(conn)
         location_ids = insert_locations(conn)
         insert_exits(conn, location_ids)
         print("World seeded successfully.")
-    finally:
-        conn.close()
 
 
 if __name__ == "__main__":
