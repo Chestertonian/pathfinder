@@ -43,6 +43,14 @@ STAT_ABBR  = ["STR",      "DEX",       "CON",          "INT",          "WIS",   
 GENDER_MALE   = 1
 GENDER_FEMALE = 2
 
+RACE_DESCRIPTIONS = {
+    "Human": "Versatile and ambitious, humans adapt quickly to any role.",
+    "Elf": "Graceful and perceptive, elves excel in agility and magic.",
+    "Dwarf": "Stout and resilient, dwarves are masters of endurance and craft.",
+    "Gnome": "Curious and clever, gnomes thrive on invention and wit.",
+    "Centaur": "Swift and powerful, centaurs combine mobility with raw strength.",
+}
+
 
 # ---------------------------------------------------------------------------
 # Password hashing
@@ -179,33 +187,48 @@ def display_stat_block(stats: dict[str, int], bonuses: dict[str, int] | None = N
             sign = "+" if b >= 0 else ""
             bonus_color = COLOR_STAT if b > 0 else "red3"
             console.print(
-                f"  [{COLOR_INFO}]{abbr:<4}[/{COLOR_INFO}]"
-                f" [{COLOR_STAT}]{value:>2}[/{COLOR_STAT}]"
+                f"[{COLOR_INFO}]{abbr:<4}[/{COLOR_INFO}]"
+                f"[{COLOR_STAT}]{value:>2}[/{COLOR_STAT}]"
                 f"  [{COLOR_INFO}](roll {value - b:>2}  "
                 f"[{bonus_color}]{sign}{b}[/{bonus_color}])[/{COLOR_INFO}]"
             )
         else:
             console.print(
-                f"  [{COLOR_INFO}]{abbr:<4}[/{COLOR_INFO}] [{COLOR_STAT}]{value:>2}[/{COLOR_STAT}]"
+                f"[{COLOR_INFO}]{abbr:<4}[/{COLOR_INFO}] [{COLOR_STAT}]{value:>2}[/{COLOR_STAT}]"
             )
     blank()
 
 
 def display_races() -> None:
-    """Print numbered race options with their stat bonuses."""
+    """Print numbered race options with stat bonuses and descriptions."""
     blank()
+
     for i, (race, bonuses) in enumerate(RACIAL_BONUSES.items(), 1):
+        # Build bonus string
         parts = []
         for stat, val in bonuses.items():
             abbr = STAT_ABBR[STAT_NAMES.index(stat)]
             sign = "+" if val >= 0 else ""
             color = COLOR_STAT if val > 0 else "red3"
             parts.append(f"[{color}]{sign}{val} {abbr}[/{color}]")
+
         bonus_str = ", ".join(parts)
+
+        # Get description
+        desc = RACE_DESCRIPTIONS.get(race, "No description available.")
+
+        # Print race line
         console.print(
-            f"  [{COLOR_PROMPT}][{i}][/{COLOR_PROMPT}]"
-            f" [{COLOR_TITLE}]{race:<10}[/{COLOR_TITLE}]  {bonus_str}"
+            f"  [{COLOR_PROMPT}][{i}][/{COLOR_PROMPT}] "
+            f"[{COLOR_TITLE}]{race:<10}[/{COLOR_TITLE}]  "
+            f"{bonus_str}"
         )
+
+        # Print description indented underneath
+        console.print(
+            f"      [dim]{desc}[/dim]"
+        )
+
     blank()
 
 
@@ -244,8 +267,8 @@ def prompt_text(label: str, min_len: int = 1, max_len: int = 20) -> str:
 def prompt_password() -> str:
     """Ask for a password twice and confirm they match."""
     while True:
-        pw1 = getpass.getpass("  Choose a password: ")
-        pw2 = getpass.getpass("  Confirm password:  ")
+        pw1 = getpass.getpass("Choose a password: ")
+        pw2 = getpass.getpass("Confirm password:  ")
         if pw1 == pw2:
             if len(pw1) >= 4:
                 return pw1
@@ -300,7 +323,7 @@ def run_character_creation() -> int | None:
     race_idx = prompt_choice(">", races)
     race = races[race_idx]
     blank()
-    print_success(f"You have chosen: {race}")
+    print_success(f"You have chosen: {race}.")
 
     # --- Step 4: Stat rolling ---
     blank()
@@ -333,7 +356,7 @@ def run_character_creation() -> int | None:
     class_idx  = prompt_choice(">", CLASSES)
     char_class = CLASSES[class_idx]
     blank()
-    print_success(f"You have chosen: {char_class}")
+    print_success(f"You have chosen: {char_class}.")
 
     # --- Step 6: Password ---
     blank()
@@ -348,10 +371,10 @@ def run_character_creation() -> int | None:
     blank()
     rule("SUMMARY")
     blank()
-    console.print(f"  [{COLOR_INFO}]Name  [/{COLOR_INFO}] [{COLOR_TITLE}]{name}[/{COLOR_TITLE}]")
-    console.print(f"  [{COLOR_INFO}]Gender[/{COLOR_INFO}] [{COLOR_TITLE}]{'Male' if gender == GENDER_MALE else 'Female'}[/{COLOR_TITLE}]")
-    console.print(f"  [{COLOR_INFO}]Race  [/{COLOR_INFO}] [{COLOR_TITLE}]{race}[/{COLOR_TITLE}]")
-    console.print(f"  [{COLOR_INFO}]Class [/{COLOR_INFO}] [{COLOR_TITLE}]{char_class}[/{COLOR_TITLE}]")
+    console.print(f"[{COLOR_INFO}]Name  [/{COLOR_INFO}] [{COLOR_TITLE}]{name}[/{COLOR_TITLE}]")
+    console.print(f"[{COLOR_INFO}]Gender[/{COLOR_INFO}] [{COLOR_TITLE}]{'Male' if gender == GENDER_MALE else 'Female'}[/{COLOR_TITLE}]")
+    console.print(f"[{COLOR_INFO}]Race  [/{COLOR_INFO}] [{COLOR_TITLE}]{race}[/{COLOR_TITLE}]")
+    console.print(f"[{COLOR_INFO}]Class [/{COLOR_INFO}] [{COLOR_TITLE}]{char_class}[/{COLOR_TITLE}]")
     blank()
     print_stat("HP: ",        resources["hp"])
     print_stat("Power: ",     resources["power"])
@@ -359,8 +382,8 @@ def run_character_creation() -> int | None:
     display_stat_block(final_stats)
     rule()
     blank()
-    console.print(f"  [{COLOR_PROMPT}][1][/{COLOR_PROMPT}] [{COLOR_TITLE}]Create this character[/{COLOR_TITLE}]")
-    console.print(f"  [{COLOR_PROMPT}][2][/{COLOR_PROMPT}] [{COLOR_TITLE}]Start over[/{COLOR_TITLE}]")
+    console.print(f"[{COLOR_PROMPT}][1][/{COLOR_PROMPT}] [{COLOR_TITLE}]Create this character[/{COLOR_TITLE}]")
+    console.print(f"[{COLOR_PROMPT}][2][/{COLOR_PROMPT}] [{COLOR_TITLE}]Start over[/{COLOR_TITLE}]")
     blank()
     confirm = prompt_choice(">", ["confirm", "restart"])
 
@@ -370,7 +393,7 @@ def run_character_creation() -> int | None:
         return run_character_creation()
 
     character_id = insert_character(
-        name=name,
+        name=name.lower(),
         password_hash=password_hash,
         gender=gender,
         race=race,

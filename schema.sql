@@ -48,6 +48,7 @@ CREATE TABLE exits (
 -- Player characters
 CREATE TABLE characters (
     id              SERIAL PRIMARY KEY,        -- Character ID
+    gender          INTEGER NOT NULL DEFAULT 0; -- gender (same system as NPCs)
     name            TEXT NOT NULL UNIQUE,      -- Username / character name
     password_hash   TEXT NOT NULL,             -- Authentication hash
     class           TEXT NOT NULL,             -- Character class (warrior, mage, etc.)
@@ -204,6 +205,19 @@ CREATE TABLE npc_instances (
     aggro_since     TIMESTAMPTZ DEFAULT NULL,
 
     created_at      TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Table to spawn NPCs
+CREATE TABLE npc_spawns (
+    id              SERIAL PRIMARY KEY,
+    npc_template_id INTEGER NOT NULL REFERENCES npc_templates(id),
+    location_id     INTEGER NOT NULL REFERENCES locations(id),
+
+    max_count       INTEGER NOT NULL DEFAULT 1,  -- how many can exist at once
+    respawn_seconds INTEGER NOT NULL DEFAULT 300, -- how long after death to respawn
+
+    last_spawned_at TIMESTAMPTZ DEFAULT NULL,
+    is_active       BOOLEAN NOT NULL DEFAULT TRUE -- toggle spawns on/off
 );
 
 -- =============================================================
@@ -366,4 +380,13 @@ CREATE TABLE audit_log (
     details         JSONB,           -- flexible payload (VERY important)
 
     created_at      TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+
+-- Broadcast messages — written by proclaim, polled by all connected clients
+CREATE TABLE broadcast_messages (
+    id           SERIAL PRIMARY KEY,
+    character_id INTEGER REFERENCES characters(id), -- who sent it (NULL = system)
+    message      TEXT NOT NULL,
+    created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

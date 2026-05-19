@@ -34,7 +34,7 @@ class LookCommand(Command):
 
         if match:
             condition = _health_condition(match.hp, match.hp_max)
-            return f"\n  {match.description}\n  {match.name} {condition}.\n"
+            return f"\n{match.description}\n{match.name} {condition}.\n"
 
         # ── LOOK AT ITEM IN ROOM ──────────────────────────────────────────
         items = room.get_items(conn)
@@ -88,7 +88,7 @@ def _describe_room(character, conn) -> str:
         blank()
         for npc in npcs:
             console.print(
-                f"{npc.name}."
+                f"{npc.name.capitalize()}."
             )
  
 

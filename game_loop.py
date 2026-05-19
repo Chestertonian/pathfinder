@@ -3,10 +3,10 @@ game_loop.py — Main game loop
 
 Thin dispatcher. Its only job is to:
   1. Load the character
-  2. Read input
-  3. Parse it into a verb + args
-  4. Hand off to the right Command
-  5. Print the result
+  2. Start the broadcast poller
+  3. Read input, parse it, hand off to the right Command
+  4. Print the result
+  5. Stop the poller on quit
 
 To add a new command: write a new file in commands/, import it here,
 and add it to the COMMANDS dict. Nothing else changes.
@@ -16,10 +16,14 @@ and passed through. No command should open its own connection.
 """
 
 from db import get_connection
-from models import Character
+from models import BroadcastMessage, Character
 from output import blank, console, print_error, print_flavor, print_success, prompt
+from broadcast import BroadcastPoller
 
 from commands.look import LookCommand
+from commands.spawn import SpawnCommand
+from commands.summon import SummonCommand
+from commands.proclaim import ProclaimCommand
 
 
 # ---------------------------------------------------------------------------
@@ -41,16 +45,23 @@ _DIRS = {
 # ---------------------------------------------------------------------------
 # Command registry
 # ---------------------------------------------------------------------------
+# All commands live here. Staff-only commands are still registered globally
+# — the command itself checks character.is_staff and refuses if not staff.
+# This keeps the dispatcher simple and uniform.
+
 COMMANDS = {
-    "look": LookCommand(),
+    "look":     LookCommand(),
+    "spawn":    SpawnCommand(),
+    "summon":   SummonCommand(),
+    "proclaim": ProclaimCommand(),
     # "exits":     ExitsCommand(),
     # "inventory": InventoryCommand(),
-    # "take":      TakeCommand(),
+    # "score":     ScoreCommand(),
 }
 
 
 # ---------------------------------------------------------------------------
-# Input parsing
+# Helpers
 # ---------------------------------------------------------------------------
 
 def _parse(raw: str) -> tuple[str, list[str]]:
@@ -62,7 +73,7 @@ def _parse(raw: str) -> tuple[str, list[str]]:
 
 
 def _run_command(command, character, conn, args):
-    """Execute a command and print its output if any."""
+    """Execute a command and print its string output if any."""
     output = command.execute(character, conn, args)
     if output:
         console.print(output)
@@ -74,15 +85,13 @@ def _run_command(command, character, conn, args):
 
 def run_game_loop(character_id: int) -> None:
     """
-    Main game loop. One DB connection is opened per command and closed
-    when the command finishes. No command opens its own connection.
+    Main game loop. One DB connection per command; no command opens its own.
 
-    The character is fetched once per command — not multiple times.
-    After a move, we update character.location_id in memory (move_to
-    already does this) so we don't need to re-fetch just to show the room.
+    Starts a BroadcastPoller in the background before the loop begins,
+    and stops it cleanly when the player quits.
     """
 
-    # Initial load — just to get the name for the greeting
+    # Initial load
     with get_connection() as conn:
         character = Character.get_by_id(conn, character_id)
 
@@ -92,55 +101,64 @@ def run_game_loop(character_id: int) -> None:
 
     print_success(f"Entering the world as {character.name}...")
 
-    # Show the starting room — one connection, character already loaded
+    # Get the current highest broadcast ID so we only show future messages,
+    # not old history from before this session started.
     with get_connection() as conn:
-        character = Character.get_by_id(conn, character_id)
-        _run_command(COMMANDS["look"], character, conn, [])
+        starting_broadcast_id = BroadcastMessage.get_latest_id(conn)
 
-    # ── Main loop ─────────────────────────────────────────────────────────
-    while True:
-        raw = prompt(">")
-        if not raw:
-            continue
+    # Start the background broadcast poller
+    poller = BroadcastPoller(starting_broadcast_id, character_id)
+    poller.start()
 
-        verb, args = _parse(raw)
+    try:
+        # Show starting room
+        with get_connection() as conn:
+            character = Character.get_by_id(conn, character_id)
+            _run_command(COMMANDS["look"], character, conn, [])
 
-        # ── Quit ──────────────────────────────────────────────────────────
-        if verb in ("quit", "exit", "q"):
-            blank()
-            print_flavor(f"{character.name} rests for now. Farewell.")
-            blank()
-            break
+        # ── Main loop ─────────────────────────────────────────────────────
+        while True:
+            raw = prompt(">")
+            if not raw:
+                continue
 
-        # ── Movement ──────────────────────────────────────────────────────
-        elif verb in _DIRS:
-            direction = _DIRS[verb]
-            with get_connection() as conn:
-                # One fetch, one exit check, one update, one room display
-                # — all inside the same connection.
-                character = Character.get_by_id(conn, character_id)
-                room = character.get_room(conn)
-                exit_data = room.get_exit(conn, direction)
+            verb, args = _parse(raw)
 
-                if exit_data is None:
-                    print_error(f"You cannot go {direction} from here.")
-                    continue
-                if exit_data["is_locked"]:
-                    print_error("That way is locked.")
-                    continue
+            # ── Quit ──────────────────────────────────────────────────────
+            if verb in ("quit", "exit", "q"):
+                blank()
+                print_flavor(f"{character.name.capitalize()} rests for now. Farewell.")
+                blank()
+                break
 
-                # move_to() commits and updates character.location_id in memory
-                character.move_to(conn, exit_data["to_location"])
+            # ── Movement ──────────────────────────────────────────────────
+            elif verb in _DIRS:
+                direction = _DIRS[verb]
+                with get_connection() as conn:
+                    character = Character.get_by_id(conn, character_id)
+                    room = character.get_room(conn)
+                    exit_data = room.get_exit(conn, direction)
 
-                # No re-fetch needed — character already has the new location_id
-                _run_command(COMMANDS["look"], character, conn, [])
+                    if exit_data is None:
+                        print_error(f"You cannot go {direction} from here.")
+                        continue
+                    if exit_data["is_locked"]:
+                        print_error("That way is locked.")
+                        continue
 
-        # ── Registered commands ───────────────────────────────────────────
-        elif verb in COMMANDS:
-            with get_connection() as conn:
-                character = Character.get_by_id(conn, character_id)
-                _run_command(COMMANDS[verb], character, conn, args)
+                    character.move_to(conn, exit_data["to_location"])
+                    _run_command(COMMANDS["look"], character, conn, [])
 
-        # ── Unknown ───────────────────────────────────────────────────────
-        else:
-            print_error(f"Unknown command '{verb}'. Try: look, north, south, quit.")
+            # ── Registered commands ────────────────────────────────────────
+            elif verb in COMMANDS:
+                with get_connection() as conn:
+                    character = Character.get_by_id(conn, character_id)
+                    _run_command(COMMANDS[verb], character, conn, args)
+
+            # ── Unknown ───────────────────────────────────────────────────
+            else:
+                print_error(f"Unknown command '{verb}'. Try: look, north, south, quit.")
+
+    finally:
+        # Always stop the poller, even if the loop crashes
+        poller.stop()

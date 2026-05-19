@@ -55,11 +55,11 @@ def run_login() -> int | None:
             print_info("(Use 'Create New Character' from the main menu to make one.)")
             continue
 
-        password = getpass.getpass("  Password: ")
+        password = getpass.getpass("Password: ")
 
         if verify_password(password, character["password_hash"]):
             blank()
-            print_success(f"Welcome back, {character['name']}.")
+            print_success(f"Welcome back, {character['name'].capitalize()}.")
             blank()
             return character["id"]
 
