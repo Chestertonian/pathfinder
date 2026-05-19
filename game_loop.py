@@ -21,6 +21,8 @@ from output import blank, console, print_error, print_flavor, print_success, pro
 from broadcast import BroadcastPoller
 
 from commands.look import LookCommand
+from commands.say import SayCommand
+from commands.emote import EmoteCommand
 from commands.spawn import SpawnCommand
 from commands.summon import SummonCommand
 from commands.proclaim import ProclaimCommand
@@ -51,9 +53,13 @@ _DIRS = {
 
 COMMANDS = {
     "look":     LookCommand(),
+    "l":        LookCommand(),
     "spawn":    SpawnCommand(),
     "summon":   SummonCommand(),
     "proclaim": ProclaimCommand(),
+    "say":      SayCommand(),
+    ";":        EmoteCommand(),
+    "emote":    EmoteCommand()
     # "exits":     ExitsCommand(),
     # "inventory": InventoryCommand(),
     # "score":     ScoreCommand(),
@@ -66,10 +72,10 @@ COMMANDS = {
 
 def _parse(raw: str) -> tuple[str, list[str]]:
     """Split raw input into (verb, args). Returns ("", []) for empty input."""
-    parts = raw.strip().lower().split()
+    parts = raw.strip().split()
     if not parts:
         return ("", [])
-    return (parts[0], parts[1:])
+    return (parts[0].lower(), parts[1:])
 
 
 def _run_command(command, character, conn, args):
@@ -99,7 +105,7 @@ def run_game_loop(character_id: int) -> None:
         print_error("Could not load character. Returning to menu.")
         return
 
-    print_success(f"Entering the world as {character.name}...")
+    print_success(f"Entering the world as {character.name.capitalize()}...")
 
     # Get the current highest broadcast ID so we only show future messages,
     # not old history from before this session started.
@@ -144,10 +150,13 @@ def run_game_loop(character_id: int) -> None:
                         continue
                     if exit_data["is_locked"]:
                         print_error("That way is locked.")
+                        BroadcastMessage.announce(conn, room.id, "It's locked.", sender_character_id=None)
                         continue
-
+                    
+                    BroadcastMessage.announce(conn, character.get_room(conn).id, f"{character.name} moves away.", sender_character_id=character.id)
                     character.move_to(conn, exit_data["to_location"])
                     _run_command(COMMANDS["look"], character, conn, [])
+                    BroadcastMessage.announce(conn, character.get_room(conn).id, f"{character.name} enters.", sender_character_id=character.id)
 
             # ── Registered commands ────────────────────────────────────────
             elif verb in COMMANDS:

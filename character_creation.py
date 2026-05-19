@@ -393,7 +393,7 @@ def run_character_creation() -> int | None:
         return run_character_creation()
 
     character_id = insert_character(
-        name=name.lower(),
+        name=name.capitalize(),
         password_hash=password_hash,
         gender=gender,
         race=race,

@@ -156,14 +156,14 @@ def _print_bordered(message: str, color: str) -> None:
     lines = message.splitlines()
     width = max(len(line) for line in lines) + 4  # padding on each side
 
-    top    = "/" + "=" * width + "\\"
-    bottom = "\\" + "=" * width + "/"
-    empty  = "||" + " " * width + "||"
+    top    = "O" + "=" * width + '''O'''
+    bottom = "O" + "=" * width + "O"
+    empty  = "|" + " " * width + "|"
 
     console.print(f"[bold {color}]{top}[/bold {color}]")
     console.print(f"[bold {color}]{empty}[/bold {color}]")
     for line in lines:
         padded = f"  {line:<{width - 2}}  "
-        console.print(f"[bold {color}]║{padded}║[/bold {color}]")
+        console.print(f"[bold {color}]|{padded}|[/bold {color}]")
     console.print(f"[bold {color}]{empty}[/bold {color}]")
     console.print(f"[bold {color}]{bottom}[/bold {color}]")

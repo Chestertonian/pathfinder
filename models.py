@@ -531,6 +531,7 @@ class BroadcastMessage:
     def __init__(self, row: dict):
         self.id           = row["id"]
         self.character_id = row["character_id"]
+        self.sender_character_id = row["sender_character_id"]
         self.message      = row["message"]
         self.color        = row["color"]
         self.use_border   = row["use_border"]
@@ -548,14 +549,14 @@ class BroadcastMessage:
                 """
                 INSERT INTO broadcast_messages
                     (character_id, message, color, use_border, location_id)
-                VALUES (%s, %s, %s, %s, NULL)
+                VALUES (%s, %s, %s, %s, %s)
                 """,
                 (character_id, message, color, use_border),
             )
         conn.commit()
 
     @staticmethod
-    def announce(conn, location_id: int, message: str, color: str = "white") -> None:
+    def announce(conn, location_id: int, message: str, color: str = "white", sender_character_id=None) -> None:
         """
         Send a message to all players currently in a specific room.
         Used internally by the game engine — not a player command.
@@ -567,22 +568,22 @@ class BroadcastMessage:
             - Environmental events (the ground shakes, a bell tolls)
 
         Usage:
-            BroadcastMessage.announce(conn, room.id, "The guard shouts: Halt!")
-            BroadcastMessage.announce(conn, room.id, "The dragon roars.", color="red3")
+            BroadcastMessage.announce(conn, room.id, "The guard shouts: Halt!", sender_character_id=None)
+            BroadcastMessage.announce(conn, room.id, "The dragon roars.", color="red3", sender_character_id=None)
         """
         with conn.cursor() as cur:
             cur.execute(
                 """
                 INSERT INTO broadcast_messages
-                    (message, color, use_border, location_id)
-                VALUES (%s, %s, FALSE, %s)
+                    (message, color, location_id, sender_character_id)
+                VALUES (%s, %s, %s, %s)
                 """,
-                (message, color, location_id),
+                (message, color, location_id, sender_character_id),
             )
         conn.commit()
 
     @staticmethod
-    def get_since(conn, last_id: int, location_id: int) -> "list[BroadcastMessage]":
+    def get_since(conn, last_id: int, location_id: int, character_id: int)-> "list[BroadcastMessage]":
         """
         Fetch all messages since last_id that are relevant to this player.
         That means: global messages (location_id IS NULL) OR messages
@@ -591,13 +592,14 @@ class BroadcastMessage:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT id, character_id, message, color, use_border, created_at
+                SELECT id, character_id, message, color, use_border, created_at, sender_character_id
                 FROM broadcast_messages
                 WHERE id > %s
-                  AND (location_id IS NULL OR location_id = %s)
+                AND (location_id IS NULL OR location_id = %s)
+                AND (sender_character_id IS NULL OR sender_character_id != %s)
                 ORDER BY id ASC
                 """,
-                (last_id, location_id),
+                (last_id, location_id, character_id),
             )
             return [
                 BroadcastMessage({
@@ -607,6 +609,7 @@ class BroadcastMessage:
                     "color":        row[3],
                     "use_border":   row[4],
                     "created_at":   row[5],
+                    "sender_character_id": row[6],
                 })
                 for row in cur.fetchall()
             ]

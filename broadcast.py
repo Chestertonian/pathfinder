@@ -14,12 +14,13 @@ Usage:
 """
 
 import threading
+import traceback
 
 from db import get_connection
 from models import BroadcastMessage, Character
 from commands.proclaim import _print_message
 
-POLL_INTERVAL = 4  # seconds between checks
+POLL_INTERVAL = 0.2  # seconds between checks
 
 
 class BroadcastPoller:
@@ -48,8 +49,8 @@ class BroadcastPoller:
         while not self._stop_event.is_set():
             try:
                 self._check_messages()
-            except Exception:
-                pass
+            except Exception as e:
+                traceback.print_exc()
             self._stop_event.wait(timeout=POLL_INTERVAL)
 
     def _check_messages(self) -> None:
@@ -59,9 +60,9 @@ class BroadcastPoller:
             if character is None:
                 return
             messages = BroadcastMessage.get_since(
-                conn, self._last_id, character.location_id
+                conn, self._last_id, character.location_id, self._character_id
             )
-
+            
         for msg in messages:
             from output import console
             console.print()
