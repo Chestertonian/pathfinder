@@ -19,10 +19,15 @@ from db import get_connection
 from models import BroadcastMessage, Character
 from output import blank, console, print_error, print_flavor, print_success, prompt
 from broadcast import BroadcastPoller
+from command_list_temp import COMMANDS
 
 from commands.look import LookCommand
+
 from commands.say import SayCommand
 from commands.emote import EmoteCommand
+from commands.tell import TellCommand
+from commands.chat import ChatCommand
+
 from commands.spawn import SpawnCommand
 from commands.summon import SummonCommand
 from commands.proclaim import ProclaimCommand
@@ -59,7 +64,9 @@ COMMANDS = {
     "proclaim": ProclaimCommand(),
     "say":      SayCommand(),
     ";":        EmoteCommand(),
-    "emote":    EmoteCommand()
+    "emote":    EmoteCommand(),
+    "tell":     TellCommand(),
+    "chat":     ChatCommand(),
     # "exits":     ExitsCommand(),
     # "inventory": InventoryCommand(),
     # "score":     ScoreCommand(),
@@ -72,6 +79,8 @@ COMMANDS = {
 
 def _parse(raw: str) -> tuple[str, list[str]]:
     """Split raw input into (verb, args). Returns ("", []) for empty input."""
+    if raw.startswith(";"):
+        raw = "emote " + raw[1:].lstrip()
     parts = raw.strip().split()
     if not parts:
         return ("", [])

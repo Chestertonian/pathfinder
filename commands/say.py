@@ -19,9 +19,9 @@ class SayCommand:
         BroadcastMessage.announce(
             conn,
             room.id,
-            f"{character.name} says, '{text}'",
+            f"{character.name} says, \"{text}\"",
             sender_character_id=character.id
         )
-        console.print(f"You say{text}.")
+        console.print(f"You say, \"{text}.\"")
 
         return None

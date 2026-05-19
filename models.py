@@ -11,6 +11,7 @@ Pattern:
   - Instance methods handle queries that need self (e.g. room.get_exits)
 """
 
+from events import emit_event
 
 # ---------------------------------------------------------------------------
 # Room
@@ -524,63 +525,40 @@ class NpcSpawn:
 # ---------------------------------------------------------------------------
 
 class BroadcastMessage:
-    """
-    A message written to the global broadcast queue by a staff member.
-    All connected clients poll for new rows and print them.
-    """
     def __init__(self, row: dict):
-        self.id           = row["id"]
+        self.id = row["id"]
         self.character_id = row["character_id"]
-        self.sender_character_id = row["sender_character_id"]
-        self.message      = row["message"]
-        self.color        = row["color"]
-        self.use_border   = row["use_border"]
-        self.created_at   = row["created_at"]
+        self.message = row["message"]
+        self.color = row["color"]
+        self.use_border = row["use_border"]
+        self.created_at = row["created_at"]
+
+        self.sender_character_id = row.get("sender_character_id")
+        self.recipient_character_id = row.get("recipient_character_id")
+        self.event_type = row.get("event_type")
+        self.channel = row.get("channel")
+        self.location_id = row.get("location_id") 
+        
+    @staticmethod
+    def send(conn, character_id, message, color="white", use_border=False):
+        return emit_event(
+            conn,
+            event_type="global",
+            sender_id=character_id,
+            message=message,
+            color=color,
+            use_border=use_border,
+        )
 
     @staticmethod
-    def send(conn, character_id: int, message: str,
-             color: str = "white", use_border: bool = False) -> None:
-        """
-        Insert a global broadcast message (proclaim).
-        location_id is NULL — visible to all connected clients.
-        """
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                INSERT INTO broadcast_messages
-                    (character_id, message, color, use_border, location_id)
-                VALUES (%s, %s, %s, %s, %s)
-                """,
-                (character_id, message, color, use_border),
-            )
-        conn.commit()
-
-    @staticmethod
-    def announce(conn, location_id: int, message: str, color: str = "white", sender_character_id=None) -> None:
-        """
-        Send a message to all players currently in a specific room.
-        Used internally by the game engine — not a player command.
-
-        Examples of when to call this:
-            - An NPC speaks to everyone in the room
-            - A trap triggers and narrates its effect
-            - A boss encounter begins
-            - Environmental events (the ground shakes, a bell tolls)
-
-        Usage:
-            BroadcastMessage.announce(conn, room.id, "The guard shouts: Halt!", sender_character_id=None)
-            BroadcastMessage.announce(conn, room.id, "The dragon roars.", color="red3", sender_character_id=None)
-        """
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                INSERT INTO broadcast_messages
-                    (message, color, location_id, sender_character_id)
-                VALUES (%s, %s, %s, %s)
-                """,
-                (message, color, location_id, sender_character_id),
-            )
-        conn.commit()
+    def announce(conn, location_id, message, sender_character_id=None):
+        return emit_event(
+            conn,
+            event_type="room",
+            sender_id=sender_character_id or 0,
+            message=message,
+            location_id=location_id,
+        )
 
     @staticmethod
     def get_since(conn, last_id: int, location_id: int, character_id: int)-> "list[BroadcastMessage]":
@@ -592,24 +570,31 @@ class BroadcastMessage:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT id, character_id, message, color, use_border, created_at, sender_character_id
+                SELECT id, character_id, message, color, use_border, created_at,
+                    sender_character_id, event_type, channel, recipient_character_id, location_id
                 FROM broadcast_messages
                 WHERE id > %s
-                AND (location_id IS NULL OR location_id = %s)
-                AND (sender_character_id IS NULL OR sender_character_id != %s)
+                AND (
+                    location_id = %s
+                    OR recipient_character_id = %s
+                    OR event_type IN ('global', 'chat')
+                )
                 ORDER BY id ASC
                 """,
                 (last_id, location_id, character_id),
             )
             return [
                 BroadcastMessage({
-                    "id":           row[0],
+                    "id": row[0],
                     "character_id": row[1],
-                    "message":      row[2],
-                    "color":        row[3],
-                    "use_border":   row[4],
-                    "created_at":   row[5],
+                    "message": row[2],
+                    "color": row[3],
+                    "use_border": row[4],
+                    "created_at": row[5],
                     "sender_character_id": row[6],
+                    "event_type": row[7],
+                    "channel": row[8],
+                    "recipient_character_id": row[9],
                 })
                 for row in cur.fetchall()
             ]

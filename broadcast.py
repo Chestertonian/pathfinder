@@ -19,6 +19,8 @@ import traceback
 from db import get_connection
 from models import BroadcastMessage, Character
 from commands.proclaim import _print_message
+from delivery import should_deliver
+from render import render
 
 POLL_INTERVAL = 0.2  # seconds between checks
 
@@ -55,17 +57,31 @@ class BroadcastPoller:
 
     def _check_messages(self) -> None:
         with get_connection() as conn:
-            # Re-fetch location each cycle so room messages follow the player
             character = Character.get_by_id(conn, self._character_id)
             if character is None:
                 return
+
             messages = BroadcastMessage.get_since(
-                conn, self._last_id, character.location_id, self._character_id
+                conn,
+                self._last_id,
+                character.location_id,
+                self._character_id
             )
-            
+
+        from output import console
+
         for msg in messages:
-            from output import console
-            console.print()
-            _print_message(msg.message, msg.color, msg.use_border)
-            console.print()
-            self._last_id = msg.id
+            
+            self._last_id = max(self._last_id, msg.id)
+
+            # 1. delivery gate
+            if not should_deliver(msg, character):
+                continue
+
+            with get_connection() as conn:
+                lookup = lambda cid: Character.get_by_id(conn, cid)
+
+                text = render(msg, lookup)
+
+            # 3. output
+            console.print(text)

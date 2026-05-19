@@ -1,0 +1,1 @@
+COMMANDS=['north', 'east', 'south', 'west', 'look', 'tell', 'say', 'chat']

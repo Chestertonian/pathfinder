@@ -28,6 +28,6 @@ class EmoteCommand:
             sender_character_id=character.id
         )
 
-        console.print(f"You {action}")
+        console.print(f"{character.name} {action}")
 
         return None
