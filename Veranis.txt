@@ -1,0 +1,106 @@
+   /\                                                        /\
+  |  |                                                      |  |
+ /----\                                                    /----\
+[______]                                                  [______]
+ |    |         _____                        _____         |    |
+ |[]  |        [     ]                      [     ]        |  []|
+ |    |       [_______][ ][ ][ ][][ ][ ][ ][_______]       |    |
+ |    [ ][ ][ ]|     |  ,----------------,  |     |[ ][ ][ ]    |
+ |             |     |/'    ____..____    '\|     |             |
+  \  []        |     |    /'    ||    '\    |     |        []  /
+   |      []   |     |   |o     ||     o|   |     |  []       |
+   |           |  _  |   |     _||_     |   |  _  |           |
+   |   []      | (_) |   |    (_||_)    |   | (_) |       []  |
+   |           |     |   |     (||)     |   |     |           |
+   |           |     |   |      ||      |   |     |           |
+ /''           |     |   |o     ||     o|   |     |           ''\
+[_____________[_______]--'------''------'--[_______]_____________]
+
+
+
+                __
+             .-'  |
+            /   <\|
+           /     \'
+           |_.- o-o
+           / C  -._)\
+          /',        |
+         |   `-,_,__,'
+         (,,)====[_]=|
+           '.   ____/
+            | -|-|_
+            |____)_)    [n4biS]
+
+
+             ,      ,
+            /(.-""-.)\
+        |\  \/      \/  /|
+        | \ / =.  .= \ / |
+        \( \   o\/o   / )/
+         \_, '-/  \-' ,_/
+           /   \__/   \
+           \ \__/\__/ /
+         ___\ \|--|/ /___
+       /`    \      /    `\
+  jgs /       '----'       \
+
+
+                           ___
+                          ( ((
+                           ) ))
+  .::.                    / /(
+ 'M .-;-.-.-.-.-.-.-.-.-/| ((::::::::::::::::::::::::::::::::::::::::::::::.._
+(J ( ( ( ( ( ( ( ( ( ( ( |  ))   -====================================-      _.>
+ `P `-;-`-`-`-`-`-`-`-`-\| ((::::::::::::::::::::::::::::::::::::::::::::::''
+  `::'                    \ \(
+                           ) ))
+                          (_((
+
+
+
+
+
+Veranis is governed by a Provincial Warden (or Marquis?)
+Below him, the Council.
+Council:
+- Warden (royal authority)
+- Garrison commander (military royal authority)
+- Merchant houses
+- Guilds of craft and labor
+- City magistracy
+- Mages' guild
+- <Temple seat>
+- Farmlands seat? 
+- Head of the watch
+
+
+Factions:
+- Crown Authority
+- Garrison Command
+- City Watch
+- Merchant Houses
+- Guilds
+- Magistrates & Legal Bureau
+- Mages' Guild
+- Temples
+- Landholders
+Less acknowledged
+- Debt brokers?
+- Mercenaries
+- Darkfriends
+- Thieves
+
+Fighters --> Commander/watch/mercenaries -- Trainers: garrison hall, mercenary outpost somewhere
+Rogues --> Thieves, mercenaries -- Trainers: A thieves' guild, mercenary outpost somewhere
+Wizards --> Mages on the council -- Trainers: Mages' tower
+Clerics --> Clergy on the council -- Trainers: Temple quarters
+Rangers --> More independent -- Trainers: Some old outposts
+
+
+High Court
+Market Ward
+Craftsmen's Quarter (eastern wall)
+Old Quarter (residential)
+Temple District
+Westgate (where mercenaries cluster)
+Slums (for the thieves' guild)

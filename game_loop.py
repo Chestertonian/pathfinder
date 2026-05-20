@@ -180,3 +180,17 @@ def run_game_loop(character_id: int) -> None:
     finally:
         # Always stop the poller, even if the loop crashes
         poller.stop()
+        
+        
+def run_command_for_network(character_id: int, raw: str):
+    verb, args = raw.strip().lower().split()[0], raw.split()[1:]
+
+    with get_connection() as conn:
+        character = Character.get_by_id(conn, character_id)
+
+        if verb in COMMANDS:
+            cmd = COMMANDS[verb]
+            result = cmd.execute(character, conn, args)
+            return result
+
+        return f"Unknown command: {verb}"
