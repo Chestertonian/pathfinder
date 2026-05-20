@@ -1,8 +1,6 @@
 from event_types import Event
 
 def row_to_event(row) -> Event:
-    if event_type == "room" and sender_id is None:
-        raise RuntimeError(f"Invalid room event: {row}")
     return Event(
         id=row[0],
         event_type=row[1],

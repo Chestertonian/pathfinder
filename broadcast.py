@@ -18,7 +18,7 @@ import traceback
 from db import get_connection
 from models import BroadcastMessage, Character
 
-from events import should_deliver
+from events import should_deliver, get_visible_events
 from render import render_event
 
 POLL_INTERVAL = 0.2
@@ -83,10 +83,7 @@ class BroadcastPoller:
                 return
 
             # Fetch ALL newer messages
-            messages = BroadcastMessage.get_since(
-                conn,
-                self._last_id
-            )
+            messages = get_visible_events(conn, last_id=self._last_id, character=character)
             
 
             # Process in-order
@@ -94,7 +91,6 @@ class BroadcastPoller:
                 
                 # Advance cursor immediately
                 self._last_id = max(self._last_id, msg.id)
-                print("[DB READ]", msg.sender_id, flush=True)
                 # Delivery gate
                 if not should_deliver(character, msg):
                     continue

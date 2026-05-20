@@ -5,9 +5,16 @@ commands/look.py — LookCommand
 from commands.base import Command
 from models import Item, NpcInstance
 from output import (
-    blank, console, print_flavor, print_info,
-    COLOR_TITLE, COLOR_INFO, COLOR_STAT, COLOR_PROMPT,
+    blank,
+    console,
+    print_flavor,
+    print_info,
+    COLOR_TITLE,
+    COLOR_INFO,
+    COLOR_STAT,
+    COLOR_PROMPT,
 )
+from events import emit_event
 
 
 class LookCommand(Command):
@@ -29,6 +36,14 @@ class LookCommand(Command):
         match = _find_by_name(target_name, players)
 
         if match:
+            emit_event(
+                conn,
+                event_type=room,
+                message=f"{character.name} looks at {target_name.capitalize()}.",
+                location_id=room.id,
+                sender_id=character.id,
+            )
+            # This isn't quite right.
             return f"\n  You see a fellow adventurer.\n"
 
         # ── LOOK AT NPC ───────────────────────────────────────────────────
@@ -61,6 +76,7 @@ class LookCommand(Command):
 # Room description
 # ---------------------------------------------------------------------------
 
+
 def _describe_room(character, conn) -> str:
     room = character.get_room(conn)
     if room is None:
@@ -68,7 +84,7 @@ def _describe_room(character, conn) -> str:
 
     exits = room.get_exits(conn)
     items = room.get_items(conn)
-    npcs  = room.get_npcs(conn)
+    npcs = room.get_npcs(conn)
     players = _get_players_in_room(conn, room.id, exclude_id=character.id)
 
     # Room name + dash underline
@@ -121,6 +137,7 @@ def _describe_room(character, conn) -> str:
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _get_players_in_room(conn, room_id: int, exclude_id: int) -> list[dict]:
     """
     Returns all logged-in players in the given room, excluding yourself.
@@ -152,6 +169,7 @@ def _find_by_name(name: str, objects: list) -> object | None:
         if name in obj_name.lower():
             return obj
     return None
+
 
 def _health_condition(hp: int, hp_max: int) -> str:
     """

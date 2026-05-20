@@ -57,7 +57,6 @@ def emit_event(
     """
     if event_type == "room" and sender_id is None:
         raise ValueError("Room events must have sender_id")
-    print("[EMIT RAW]", sender_id, type(sender_id), flush=True)
     with conn.cursor() as cur:
         cur.execute(
             """
@@ -85,8 +84,6 @@ def emit_event(
                 use_border,
             ),
         )
-        print("[DB WRITE]", sender_id, flush=True)
-
     conn.commit()
 
 
@@ -141,7 +138,6 @@ def get_visible_events(
 
 def should_deliver(character, event: Event) -> bool:
     # the event's sender_id is currently null for movement
-    print(f"[DELIVER CHECK] type={event.event_type} sender={event.sender_id} char={character.id} event_loc={event.location_id} char_loc={character.location_id}")
     from events_mapper import row_to_event
     if event.event_type == "room" and event.sender_id is None:
         print("[WARN] Room event missing sender_id:", event)
