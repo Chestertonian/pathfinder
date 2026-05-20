@@ -1,4 +1,4 @@
-def should_deliver(msg, character):
+'''def should_deliver(msg, character):
     # Direct messages
     if msg.recipient_character_id == character.id:
         return True
@@ -18,4 +18,4 @@ def should_deliver(msg, character):
     return False
 
 def character_has_access(character, channel):
-    return True
+    return True'''

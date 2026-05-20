@@ -1,4 +1,4 @@
-from models import BroadcastMessage
+from events import emit_event
 from output import console
 
 
@@ -21,13 +21,12 @@ class EmoteCommand:
 
         message = f"{character.name} {action}"
 
-        BroadcastMessage.announce(
+        emit_event(
             conn,
-            room.id,
-            message,
-            sender_character_id=character.id
+            event_type="room",
+            sender_id=None,
+            location_id=character.location_id,
+            message=message,
         )
-
-        console.print(f"{character.name} {action}")
 
         return None

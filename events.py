@@ -175,10 +175,9 @@ def should_deliver(character, event: Event) -> bool:
     # Room events (NO SELF-ECHO, EVER)
     # -------------------------------------------------------
     if event.event_type == "room":
-        return (
-            event.location_id == character.location_id
-            and event.sender_id != character.id
-        )
+        if event.sender_id == character.id:
+            return False
+        return event.location_id == character.location_id
 
     # -------------------------------------------------------
     # Tell events (private messaging)

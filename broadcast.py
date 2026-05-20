@@ -18,8 +18,7 @@ import traceback
 from db import get_connection
 from models import BroadcastMessage, Character
 
-from delivery import should_deliver
-print("Delivery module loaded.")
+from events import should_deliver
 from render import render_event
 
 POLL_INTERVAL = 0.2
@@ -96,7 +95,7 @@ class BroadcastPoller:
                 self._last_id = max(self._last_id, msg.id)
                 
                 # Delivery gate
-                if not should_deliver(msg, character):
+                if not should_deliver(character, msg):
                     continue
 
                 # Render

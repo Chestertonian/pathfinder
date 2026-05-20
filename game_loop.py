@@ -142,11 +142,30 @@ def run_game_loop(character_id: int) -> None:
 
             verb, args = _parse(raw)
 
-            # ── Quit ──────────────────────────────────────────────────────
+            # ── Quit ──────────────────────────────────────────────────
             if verb in ("quit", "exit", "q"):
                 blank()
                 print_flavor(f"{character.name.capitalize()} rests for now. Farewell.")
                 blank()
+                room = character.get_room(conn)
+                with get_connection() as conn:
+                    # 1. Notify the room FIRST
+                    emit_event(
+                        conn,
+                        event_type="room",
+                        sender_id=character_id,
+                        location_id=room.id,
+                        message=f"{character.name.capitalize()} fades from the world.",
+                    )
+
+                    # 2. Mark offline
+                    with conn.cursor() as cur:
+                        cur.execute(
+                            "UPDATE characters SET is_logged_in = FALSE WHERE id = %s",
+                            (character_id,)
+                        )
+                    conn.commit()
+
                 break
 
             # ── Movement ──────────────────────────────────────────────────
@@ -179,7 +198,7 @@ def run_game_loop(character_id: int) -> None:
                         message=f"{character.name} leaves {direction}.",
                     )
                     
-                    
+                  
                     emit_event(
                         conn,
                         event_type="room",

@@ -1,4 +1,5 @@
-from models import BroadcastMessage
+# commands/tell.py
+
 from output import console
 from events_legacy import emit_event
 
@@ -14,10 +15,10 @@ class TellCommand:
         if not message:
             return "Tell them what?"
 
-        # find target character
+        # Find target character
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT id FROM characters WHERE name ILIKE %s",
+                "SELECT id, is_logged_in FROM characters WHERE name ILIKE %s",
                 (target_name,),
             )
             row = cur.fetchone()
@@ -25,14 +26,16 @@ class TellCommand:
         if not row:
             return f"No player named '{target_name}'."
 
-        target_id = row[0]
+        target_id, is_logged_in = row  # unpack both fields
 
         if target_id == character.id:
             return "You talk to yourself. It echoes strangely."
 
+        if not is_logged_in:
+            return f"{target_name.capitalize()} is not in the world right now."
+
         formatted = f"[cyan]{character.name} tells you, '{message}'[/cyan]"
 
-        # send ONLY to target (global message filtered by recipient_id idea)
         emit_event(
             conn,
             event_type="tell",

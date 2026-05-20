@@ -1,9 +1,5 @@
 """
 commands/look.py — LookCommand
-
-Handles the 'look' command in all its forms:
-  look              — describe the current room
-  look at <target>  — describe an NPC or item by name
 """
 
 from commands.base import Command
@@ -27,6 +23,13 @@ class LookCommand(Command):
         room = character.get_room(conn)
         if room is None:
             return "You seem to be nowhere. Something has gone wrong."
+
+        # ── LOOK AT PLAYER IN ROOM ────────────────────────────────────────
+        players = _get_players_in_room(conn, room.id, exclude_id=character.id)
+        match = _find_by_name(target_name, players)
+
+        if match:
+            return f"\n  You see a fellow adventurer.\n"
 
         # ── LOOK AT NPC ───────────────────────────────────────────────────
         npcs = room.get_npcs(conn)
@@ -55,50 +58,46 @@ class LookCommand(Command):
 
 
 # ---------------------------------------------------------------------------
-# Room description — the main visual output of the game
+# Room description
 # ---------------------------------------------------------------------------
 
 def _describe_room(character, conn) -> str:
-    """
-    Print the room description in a clean, plain style.
-    Room name, dash underline, blank line, description, then exits.
-    No color on prose — only red for hostile NPCs.
-    """
     room = character.get_room(conn)
     if room is None:
         return "Your location could not be found. Something has gone wrong."
- 
+
     exits = room.get_exits(conn)
     items = room.get_items(conn)
     npcs  = room.get_npcs(conn)
- 
+    players = _get_players_in_room(conn, room.id, exclude_id=character.id)
+
     # Room name + dash underline
     blank()
     console.print(room.name)
     console.print("-" * len(room.name))
- 
-    # Description — plain white, no indent, no color
+
+    # Description
     blank()
     description = " ".join(room.description.split())
     console.print(description)
 
+    # Other players
+    if players:
+        blank()
+        for player in players:
+            console.print(f"{player['name'].capitalize()} is here.")
 
     # NPCs
     if npcs:
         blank()
         for npc in npcs:
-            console.print(
-                f"{npc.name.capitalize()}."
-            )
- 
+            console.print(f"{npc.name.capitalize()}.")
 
     # Items on the ground
     if items:
         blank()
         for item in items:
-            console.print(
-                f"{item.name}"
-            )
+            console.print(f"{item.name}")
 
     # Exits
     blank()
@@ -109,8 +108,8 @@ def _describe_room(character, conn) -> str:
             if ex["is_locked"]:
                 exit_parts.append(f"{direction} (locked)")
             else:
-                exit_parts.append(f"{direction}")
-        console.print(f"Exits: " + "  ".join(exit_parts))
+                exit_parts.append(direction)
+        console.print("Exits: " + "  ".join(exit_parts))
     else:
         print_info("There are no obvious exits.")
 
@@ -122,17 +121,37 @@ def _describe_room(character, conn) -> str:
 # Helpers
 # ---------------------------------------------------------------------------
 
+def _get_players_in_room(conn, room_id: int, exclude_id: int) -> list[dict]:
+    """
+    Returns all logged-in players in the given room, excluding yourself.
+    Each result is a plain dict with 'id' and 'name'.
+    """
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT id, name
+            FROM characters
+            WHERE location_id = %s
+              AND is_logged_in = TRUE
+              AND id != %s
+            """,
+            (room_id, exclude_id),
+        )
+        rows = cur.fetchall()
+    return [{"id": row[0], "name": row[1]} for row in rows]
+
+
 def _find_by_name(name: str, objects: list) -> object | None:
     """
     Find the first object whose name contains the search string.
-    Simple substring match — good enough for now.
+    Works on both model objects (with .name) and dicts (with ['name']).
     """
     name = name.lower()
     for obj in objects:
-        if name in obj.name.lower():
+        obj_name = obj["name"] if isinstance(obj, dict) else obj.name
+        if name in obj_name.lower():
             return obj
     return None
-
 
 def _health_condition(hp: int, hp_max: int) -> str:
     """

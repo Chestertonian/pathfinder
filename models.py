@@ -533,11 +533,11 @@ class BroadcastMessage:
         self.use_border = row["use_border"]
         self.created_at = row["created_at"]
         self.event_type = row["event_type"]
-        self.recipient_character_id = row["recipient_character_id"]
+        self.recipient_id = row["recipient_character_id"]
         self.location_id = row["location_id"]
         self.channel = row["channel"]
 
-        self.sender_character_id = row.get("sender_character_id")
+        self.sender_id = row.get("sender_character_id")
         # self.recipient_character_id = row.get("recipient_character_id")
         # self.event_type = row.get("event_type")
         # self.channel = row.get("channel")
