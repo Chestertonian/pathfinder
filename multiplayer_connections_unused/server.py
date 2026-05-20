@@ -1,7 +1,7 @@
 import socket
 import threading
 from db import get_connection
-from game_loop import run_command_for_network  # we’ll define this wrapper
+from game_loop import run_command_for_network 
 
 HOST = "0.0.0.0"
 PORT = 5000

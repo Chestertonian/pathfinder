@@ -16,7 +16,7 @@ import threading
 import traceback
 
 from db import get_connection
-from models import BroadcastMessage, Character
+from models import Character
 
 from events import should_deliver, get_visible_events
 from render import render_event
@@ -91,6 +91,7 @@ class BroadcastPoller:
                 
                 # Advance cursor immediately
                 self._last_id = max(self._last_id, msg.id)
+                
                 # Delivery gate
                 if not should_deliver(character, msg):
                     continue

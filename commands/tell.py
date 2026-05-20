@@ -1,7 +1,7 @@
 # commands/tell.py
 
 from output import console
-from events_legacy import emit_event
+from events import emit_event
 
 
 class TellCommand:

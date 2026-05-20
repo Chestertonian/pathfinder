@@ -11,7 +11,7 @@ Pattern:
   - Instance methods handle queries that need self (e.g. room.get_exits)
 """
 
-from events_legacy import emit_event
+from events import emit_event
 
 # ---------------------------------------------------------------------------
 # Room

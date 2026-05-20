@@ -36,14 +36,7 @@ class LookCommand(Command):
         match = _find_by_name(target_name, players)
 
         if match:
-            emit_event(
-                conn,
-                event_type=room,
-                message=f"{character.name} looks at {target_name.capitalize()}.",
-                location_id=room.id,
-                sender_id=character.id,
-            )
-            # This isn't quite right.
+            _emit_look_event(conn, character, room, match["name"])
             return f"\n  You see a fellow adventurer.\n"
 
         # ── LOOK AT NPC ───────────────────────────────────────────────────
@@ -51,6 +44,7 @@ class LookCommand(Command):
         match = _find_by_name(target_name, npcs)
 
         if match:
+            _emit_look_event(conn, character, room, match.name)
             condition = _health_condition(match.hp, match.hp_max)
             return f"\n{match.description}\n{match.name} {condition}.\n"
 
@@ -59,6 +53,7 @@ class LookCommand(Command):
         match = _find_by_name(target_name, items)
 
         if match:
+            _emit_look_event(conn, character, room, match.name)
             return f"\n  {match.description}\n"
 
         # ── LOOK AT ITEM IN INVENTORY ─────────────────────────────────────
@@ -66,6 +61,7 @@ class LookCommand(Command):
         match = _find_by_name(target_name, inventory)
 
         if match:
+            _emit_look_event(conn, character, room, match.name)
             return f"\n  {match.description}\n"
 
         # ── NOT FOUND ─────────────────────────────────────────────────────
@@ -190,3 +186,12 @@ def _health_condition(hp: int, hp_max: int) -> str:
         return "is badly wounded"
     else:
         return "looks close to death"
+
+def _emit_look_event(conn, character, room, target_name: str):
+    emit_event(
+        conn,
+        event_type="room",
+        message=f"{character.name} looks at {target_name}.",
+        location_id=room.id,
+        sender_id=character.id,
+    )
