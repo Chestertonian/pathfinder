@@ -5,7 +5,7 @@ def emit_event(
     sender_id: int,
     message: str,
     location_id=None,
-    recipient_id=None,
+    recipient_character_id=None,
     channel=None,
     color="white",
     use_border=False,
@@ -25,7 +25,7 @@ def emit_event(
                 color,
                 use_border,
                 location_id,
-                recipient_id,
+                recipient_character_id,
                 channel,
             ),
         )

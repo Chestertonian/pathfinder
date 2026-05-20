@@ -181,7 +181,7 @@ def run_game_loop(character_id: int) -> None:
                         continue
                     if exit_data["is_locked"]:
                         print_error("That way is locked.")
-                        BroadcastMessage.announce(conn, room.id, "It's locked.", sender_character_id=None)
+                        BroadcastMessage.announce(conn, room.id, "It's locked.", sender_id=None)
                         continue
                     
                     old_room=room.id

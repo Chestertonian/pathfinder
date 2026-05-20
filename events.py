@@ -17,30 +17,13 @@
 #   - system announcements
 #
 
-from dataclasses import dataclass
 from typing import Optional
+
+from event_types import Event
+from events_mapper import row_to_event
 
 from db import get_connection
 
-
-# ---------------------------------------------------------------------------
-# Event object
-# ---------------------------------------------------------------------------
-
-@dataclass
-class Event:
-    id: int
-    event_type: str
-
-    sender_id: Optional[int]
-    recipient_id: Optional[int]
-
-    location_id: Optional[int]
-    channel: Optional[str]
-
-    message: str
-    color: str
-    use_border: bool
 
 
 # ---------------------------------------------------------------------------
@@ -54,7 +37,7 @@ def emit_event(
     message: str,
 
     sender_id: Optional[int] = None,
-    recipient_id: Optional[int] = None,
+    recipient_character_id: Optional[int] = None,
 
     location_id: Optional[int] = None,
     channel: Optional[str] = None,
@@ -72,7 +55,9 @@ def emit_event(
         global
         system
     """
-
+    if event_type == "room" and sender_id is None:
+        raise ValueError("Room events must have sender_id")
+    print("[EMIT RAW]", sender_id, type(sender_id), flush=True)
     with conn.cursor() as cur:
         cur.execute(
             """
@@ -92,7 +77,7 @@ def emit_event(
             (
                 event_type,
                 sender_id,
-                recipient_id,
+                recipient_character_id,
                 location_id,
                 channel,
                 message,
@@ -100,6 +85,7 @@ def emit_event(
                 use_border,
             ),
         )
+        print("[DB WRITE]", sender_id, flush=True)
 
     conn.commit()
 
@@ -145,17 +131,7 @@ def get_visible_events(
     visible = []
 
     for row in rows:
-        event = Event(
-            id=row[0],
-            event_type=row[1],
-            sender_id=row[2],
-            recipient_id=row[3],
-            location_id=row[4],
-            channel=row[5],
-            message=row[6],
-            color=row[7],
-            use_border=row[8],
-        )
+        event = row_to_event(row)
 
         if should_deliver(character, event):
             visible.append(event)
@@ -164,7 +140,12 @@ def get_visible_events(
 
 
 def should_deliver(character, event: Event) -> bool:
-
+    # the event's sender_id is currently null for movement
+    print(f"[DELIVER CHECK] type={event.event_type} sender={event.sender_id} char={character.id} event_loc={event.location_id} char_loc={character.location_id}")
+    from events_mapper import row_to_event
+    if event.event_type == "room" and event.sender_id is None:
+        print("[WARN] Room event missing sender_id:", event)
+        return False
     # -------------------------------------------------------
     # Global events (always visible)
     # -------------------------------------------------------
@@ -184,7 +165,7 @@ def should_deliver(character, event: Event) -> bool:
     # -------------------------------------------------------
     if event.event_type == "tell":
         return (
-            event.recipient_id == character.id
+            event.recipient_character_id == character.id
             or event.sender_id == character.id
         )
 

@@ -11,19 +11,14 @@ from output import blank, print_error, print_info, print_success, prompt, rule
 
 
 def get_character_by_name(cur, name: str) -> dict | None:
-    """
-    Look up a character by name.
-    Accepts a cursor instead of opening its own connection,
-    so the caller controls the connection lifetime.
-    """
     cur.execute(
-        "SELECT id, name, password_hash FROM characters WHERE LOWER(name) = LOWER(%s)",
+        "SELECT id, name, password_hash, is_logged_in FROM characters WHERE LOWER(name) = LOWER(%s)",
         (name,),
     )
     row = cur.fetchone()
     if row is None:
         return None
-    return {"id": row[0], "name": row[1], "password_hash": row[2]}
+    return {"id": row[0], "name": row[1], "password_hash": row[2], "is_logged_in": row[3]}
 
 
 def run_login() -> int | None:
@@ -48,9 +43,15 @@ def run_login() -> int | None:
 
                 character = get_character_by_name(cur, name)  # pass cursor in
 
+                character = get_character_by_name(cur, name)
+
                 if character is None:
                     print_error(f"No character named '{name}' exists.")
                     print_info("(Use 'Create New Character' from the main menu to make one.)")
+                    continue
+
+                if character["is_logged_in"]:
+                    print_error(f"{name.capitalize()} is already in the world.")
                     continue
 
                 password = getpass.getpass("Password: ")

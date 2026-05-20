@@ -87,13 +87,14 @@ class BroadcastPoller:
                 conn,
                 self._last_id
             )
+            
 
             # Process in-order
             for msg in messages:
-
+                
                 # Advance cursor immediately
                 self._last_id = max(self._last_id, msg.id)
-                
+                print("[DB READ]", msg.sender_id, flush=True)
                 # Delivery gate
                 if not should_deliver(character, msg):
                     continue

@@ -24,9 +24,11 @@ class EmoteCommand:
         emit_event(
             conn,
             event_type="room",
-            sender_id=None,
+            sender_id=character.id,
             location_id=character.location_id,
             message=message,
         )
+        
+        console.print(message)
 
         return None

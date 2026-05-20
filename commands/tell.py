@@ -40,7 +40,7 @@ class TellCommand:
             conn,
             event_type="tell",
             sender_id=character.id,
-            recipient_id=target_id,
+            recipient_character_id=target_id,
             message=formatted,
             color="magenta",
         )
