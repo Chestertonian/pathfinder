@@ -34,17 +34,26 @@ class TellCommand:
         if not is_logged_in:
             return f"{target_name.capitalize()} is not in the world right now."
 
-        formatted = f"[cyan]{character.name} tells you, '{message}'[/cyan]"
-
+        # Recipient sees:
         emit_event(
             conn,
             event_type="tell",
             sender_id=character.id,
             recipient_character_id=target_id,
-            message=formatted,
+            message=f"[cyan]{character.name} tells you, '{message}'[/cyan]",
             color="magenta",
         )
 
-        console.print(f"[magenta]You tell {target_name.capitalize()}, '{message}'[/magenta]")
+        # Sender sees:
+        emit_event(
+            conn,
+            event_type="tell",
+            sender_id=character.id,
+            recipient_character_id=character.id,
+            message=f"[magenta]You tell {target_name.capitalize()}, '{message}'[/magenta]",
+            color="magenta",
+        )
+
+        # console.print(f"[magenta]You tell {target_name.capitalize()}, '{message}'[/magenta]")
 
         return None

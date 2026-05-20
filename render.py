@@ -52,7 +52,7 @@ def render_event(conn, event):
 
     if event.event_type == "channel":
         channel = (event.channel or "chat").upper()
-        return f"[cyan][{channel}][/cyan] {sender_name}: {event.message}"
+        return f"[cyan]{sender_name} <{channel.lower()}> {event.message} [/cyan]"
 
     # ------------------------------------------------------------
     # DEFAULT

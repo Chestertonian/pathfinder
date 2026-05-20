@@ -160,10 +160,8 @@ def should_deliver(character, event: Event) -> bool:
     # Tell events (private messaging)
     # -------------------------------------------------------
     if event.event_type == "tell":
-        return (
-            event.recipient_character_id == character.id
-            or event.sender_id == character.id
-        )
+        # ONLY deliver if you're the recipient
+        return event.recipient_character_id == character.id
 
     # -------------------------------------------------------
     # Channel chat

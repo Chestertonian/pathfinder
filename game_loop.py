@@ -23,6 +23,8 @@ from command_list_temp import COMMANDS
 from events import emit_event
 
 from commands.look import LookCommand
+from commands.exits import ExitsCommand
+from commands.score import ScoreCommand
 
 from commands.say import SayCommand
 from commands.emote import EmoteCommand
@@ -70,9 +72,9 @@ COMMANDS = {
     "tell":     TellCommand(),
     "chat":     ChatCommand(),
     "world":    WorldCommand(),
-    # "exits":     ExitsCommand(),
+    "exits":     ExitsCommand(),
     # "inventory": InventoryCommand(),
-    # "score":     ScoreCommand(),
+    "score":     ScoreCommand(),
 }
 
 
@@ -128,6 +130,8 @@ def run_game_loop(character_id: int) -> None:
     poller = BroadcastPoller(starting_broadcast_id, character_id)
     poller.start()
 
+    did_quit_cleanly = False
+    
     try:
         # Show starting room
         with get_connection() as conn:
@@ -147,9 +151,11 @@ def run_game_loop(character_id: int) -> None:
                 blank()
                 print_flavor(f"{character.name.capitalize()} rests for now. Farewell.")
                 blank()
-                room = character.get_room(conn)
+
                 with get_connection() as conn:
-                    # 1. Notify the room FIRST
+                    character = Character.get_by_id(conn, character_id)
+                    room = character.get_room(conn)
+
                     emit_event(
                         conn,
                         event_type="room",
@@ -158,14 +164,7 @@ def run_game_loop(character_id: int) -> None:
                         message=f"{character.name.capitalize()} fades from the world.",
                     )
 
-                    # 2. Mark offline
-                    with conn.cursor() as cur:
-                        cur.execute(
-                            "UPDATE characters SET is_logged_in = FALSE WHERE id = %s",
-                            (character_id,)
-                        )
-                    conn.commit()
-
+                did_quit_cleanly = True
                 break
 
             # ── Movement ──────────────────────────────────────────────────
@@ -219,6 +218,23 @@ def run_game_loop(character_id: int) -> None:
     finally:
         # Always stop the poller, even if the loop crashes
         poller.stop()
+            
+        # Always mark player offline
+        try:
+            with get_connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """
+                        UPDATE characters
+                        SET is_logged_in = FALSE
+                        WHERE id = %s
+                        """,
+                        (character_id,),
+                    )
+                conn.commit()
+
+        except Exception as e:
+            print(f"[FATAL] Failed to mark character offline: {e}")
         
   
 # Not currently in use.      

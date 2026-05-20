@@ -97,7 +97,7 @@ def _describe_room(character, conn) -> str:
     if players:
         blank()
         for player in players:
-            console.print(f"{player['name'].capitalize()} is here.")
+            console.print(f"{player['name'].capitalize()}.")
 
     # NPCs
     if npcs:
