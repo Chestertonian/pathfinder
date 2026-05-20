@@ -1,6 +1,6 @@
 from models import BroadcastMessage
 from output import console
-from events import emit_event
+from events_legacy import emit_event
 
 
 class TellCommand:
@@ -38,9 +38,10 @@ class TellCommand:
             event_type="tell",
             sender_id=character.id,
             recipient_id=target_id,
-            message=formatted
+            message=formatted,
+            color="magenta",
         )
 
-        console.print(f"[cyan]You tell {target_name.capitalize()}, '{message}'[/cyan]")
+        console.print(f"[magenta]You tell {target_name.capitalize()}, '{message}'[/magenta]")
 
         return None

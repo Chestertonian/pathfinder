@@ -17,6 +17,7 @@ connected clients within a few seconds via BroadcastPoller.
 from commands.base import Command
 from models import BroadcastMessage
 from output import blank, console, prompt
+from events import emit_event
 
 
 # ---------------------------------------------------------------------------
@@ -124,7 +125,14 @@ class ProclaimCommand(Command):
             return "Proclamation cancelled."
 
         # ── Step 5: Send ──────────────────────────────────────────────────
-        BroadcastMessage.send(conn, character.id, message, color_str, use_border)
+        emit_event(
+            conn,
+            event_type="global",
+            sender_id=character.id,
+            message=message,
+            color=color_str,
+            use_border=use_border,
+        )
 
         blank()
         return "Proclaimed."

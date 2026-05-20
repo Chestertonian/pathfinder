@@ -1,6 +1,7 @@
 # commands/say.py
 
 from models import BroadcastMessage
+from events import emit_event
 from output import blank, console, print_error, print_flavor, print_success, prompt
 
 
@@ -16,11 +17,12 @@ class SayCommand:
 
         room = character.get_room(conn)
 
-        BroadcastMessage.announce(
+        emit_event(
             conn,
-            room.id,
-            f"{character.name} says, \"{text}\"",
-            sender_character_id=character.id
+            event_type="room",
+            sender_id=character.id,
+            location_id=character.location_id,
+            message=f'{character.name} says, "{text}"',
         )
         console.print(f"You say, \"{text}.\"")
 

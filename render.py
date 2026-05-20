@@ -1,16 +1,61 @@
-def render(msg, lookup_character):
-    if msg.event_type == "chat":
-        sender = lookup_character(msg.character_id)
-        return f"[yellow] {sender.name.capitalize()} <chat> {msg.message} [/yellow]"
+#
+# render.py
+#
+# Converts structured events into display strings.
+#
 
-    if msg.event_type == "tell":
-        sender = lookup_character(msg.character_id)
-        return f"[cyan]{msg.message}[/cyan]"
+from models import Character
 
-    if msg.event_type == "room":
-        return msg.message
 
-    if msg.event_type == "system":
-        return f"*[red] {msg.message} [/red]*"
+def render_event(conn, event):
+    """
+    Turns an event into a string for display.
 
-    return msg.message
+    IMPORTANT:
+    - NO filtering logic here
+    - ONLY formatting
+    """
+
+    sender_id = getattr(event, "sender_id", None) or getattr(event, "character_id", None)
+
+    sender_name = "Someone"
+
+    if sender_id:
+        sender = Character.get_by_id(conn, sender_id)
+        if sender:
+            sender_name = sender.name.capitalize()
+
+    # ------------------------------------------------------------
+    # GLOBAL
+    # ------------------------------------------------------------
+
+    if event.event_type == "global":
+        return event.message
+
+    # ------------------------------------------------------------
+    # ROOM
+    # ------------------------------------------------------------
+
+    if event.event_type == "room":
+        return event.message
+
+    # ------------------------------------------------------------
+    # TELL
+    # ------------------------------------------------------------
+
+    if event.event_type == "tell":
+        return f"[cyan]{event.message}[/]"
+
+    # ------------------------------------------------------------
+    # CHANNEL
+    # ------------------------------------------------------------
+
+    if event.event_type == "channel":
+        channel = (event.channel or "chat").upper()
+        return f"[cyan][{channel}][/cyan] {sender_name}: {event.message}"
+
+    # ------------------------------------------------------------
+    # DEFAULT
+    # ------------------------------------------------------------
+
+    return event.message

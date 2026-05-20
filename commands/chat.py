@@ -9,8 +9,9 @@ class ChatCommand:
 
         emit_event(
             conn,
-            event_type="chat",
+            event_type="channel",
             sender_id=character.id,
+            channel="chat",
             message=message,
-            channel="global"  
+            color="cyan",
         )

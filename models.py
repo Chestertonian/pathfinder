@@ -11,7 +11,7 @@ Pattern:
   - Instance methods handle queries that need self (e.g. room.get_exits)
 """
 
-from events import emit_event
+from events_legacy import emit_event
 
 # ---------------------------------------------------------------------------
 # Room
@@ -532,12 +532,17 @@ class BroadcastMessage:
         self.color = row["color"]
         self.use_border = row["use_border"]
         self.created_at = row["created_at"]
+        self.event_type = row["event_type"]
+        self.recipient_character_id = row["recipient_character_id"]
+        self.location_id = row["location_id"]
+        self.channel = row["channel"]
 
         self.sender_character_id = row.get("sender_character_id")
-        self.recipient_character_id = row.get("recipient_character_id")
-        self.event_type = row.get("event_type")
-        self.channel = row.get("channel")
-        self.location_id = row.get("location_id") 
+        # self.recipient_character_id = row.get("recipient_character_id")
+        # self.event_type = row.get("event_type")
+        # self.channel = row.get("channel")
+        # self.location_id = row.get("location_id")
+         
         
     @staticmethod
     def send(conn, character_id, message, color="white", use_border=False):
@@ -560,45 +565,53 @@ class BroadcastMessage:
             location_id=location_id,
         )
 
+
     @staticmethod
-    def get_since(conn, last_id: int, location_id: int, character_id: int)-> "list[BroadcastMessage]":
+    def get_since(conn, last_id: int) -> "list[BroadcastMessage]":
         """
-        Fetch all messages since last_id that are relevant to this player.
-        That means: global messages (location_id IS NULL) OR messages
-        for the room they're currently in.
+        Fetch all messages newer than last_id.
+
+        NO filtering happens here anymore.
+        Visibility is handled by delivery.should_deliver().
         """
+
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT id, character_id, message, color, use_border, created_at,
-                    sender_character_id, event_type, channel, recipient_character_id, location_id
+                SELECT
+                    id,
+                    event_type,
+                    character_id,
+                    recipient_character_id,
+                    location_id,
+                    channel,
+                    message,
+                    color,
+                    use_border,
+                    created_at
                 FROM broadcast_messages
                 WHERE id > %s
-                AND (
-                    location_id = %s
-                    OR recipient_character_id = %s
-                    OR event_type IN ('global', 'chat')
-                )
                 ORDER BY id ASC
                 """,
-                (last_id, location_id, character_id),
+                (last_id,),
             )
+
             return [
                 BroadcastMessage({
                     "id": row[0],
-                    "character_id": row[1],
-                    "message": row[2],
-                    "color": row[3],
-                    "use_border": row[4],
-                    "created_at": row[5],
-                    "sender_character_id": row[6],
-                    "event_type": row[7],
-                    "channel": row[8],
-                    "recipient_character_id": row[9],
+                    "event_type": row[1],
+                    "character_id": row[2],
+                    "recipient_character_id": row[3],
+                    "location_id": row[4],
+                    "channel": row[5],
+                    "message": row[6],
+                    "color": row[7],
+                    "use_border": row[8],
+                    "created_at": row[9],
                 })
                 for row in cur.fetchall()
             ]
-
+            
     @staticmethod
     def get_latest_id(conn) -> int:
         """Get the current highest message ID. Called once on login."""

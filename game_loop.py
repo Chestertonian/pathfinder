@@ -20,6 +20,7 @@ from models import BroadcastMessage, Character
 from output import blank, console, print_error, print_flavor, print_success, prompt
 from broadcast import BroadcastPoller
 from command_list_temp import COMMANDS
+from events import emit_event
 
 from commands.look import LookCommand
 
@@ -31,6 +32,7 @@ from commands.chat import ChatCommand
 from commands.spawn import SpawnCommand
 from commands.summon import SummonCommand
 from commands.proclaim import ProclaimCommand
+from commands.world import WorldCommand
 
 
 # ---------------------------------------------------------------------------
@@ -67,6 +69,7 @@ COMMANDS = {
     "emote":    EmoteCommand(),
     "tell":     TellCommand(),
     "chat":     ChatCommand(),
+    "world":    WorldCommand(),
     # "exits":     ExitsCommand(),
     # "inventory": InventoryCommand(),
     # "score":     ScoreCommand(),
@@ -162,10 +165,28 @@ def run_game_loop(character_id: int) -> None:
                         BroadcastMessage.announce(conn, room.id, "It's locked.", sender_character_id=None)
                         continue
                     
-                    BroadcastMessage.announce(conn, character.get_room(conn).id, f"{character.name} moves away.", sender_character_id=character.id)
+                    old_room=room.id
+                    new_room=exit_data["to_location"]
+                    
                     character.move_to(conn, exit_data["to_location"])
                     _run_command(COMMANDS["look"], character, conn, [])
-                    BroadcastMessage.announce(conn, character.get_room(conn).id, f"{character.name} enters.", sender_character_id=character.id)
+                    
+                    emit_event(
+                        conn,
+                        event_type="room",
+                        sender_id=character.id,
+                        location_id=old_room,
+                        message=f"{character.name} leaves {direction}.",
+                    )
+                    
+                    
+                    emit_event(
+                        conn,
+                        event_type="room",
+                        sender_id=character.id,
+                        location_id=new_room,
+                        message=f"{character.name} arrives.",
+                    )
 
             # ── Registered commands ────────────────────────────────────────
             elif verb in COMMANDS:
@@ -181,7 +202,8 @@ def run_game_loop(character_id: int) -> None:
         # Always stop the poller, even if the loop crashes
         poller.stop()
         
-        
+  
+# Not currently in use.      
 def run_command_for_network(character_id: int, raw: str):
     verb, args = raw.strip().lower().split()[0], raw.split()[1:]
 
