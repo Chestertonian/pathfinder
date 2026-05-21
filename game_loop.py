@@ -40,8 +40,11 @@ from commands.chat import ChatCommand
 
 from commands.spawn import SpawnCommand
 from commands.summon import SummonCommand
+from commands.spawnitem import SpawnItemCommand
 from commands.proclaim import ProclaimCommand
 from commands.world import WorldCommand
+
+from commands.items import GetCommand, DropCommand, InventoryCommand
 
 
 # ---------------------------------------------------------------------------
@@ -71,6 +74,7 @@ COMMANDS = {
     "look":     LookCommand(),
     "l":        LookCommand(),
     "spawn":    SpawnCommand(),
+    "spawnitem": SpawnItemCommand(),
     "summon":   SummonCommand(),
     "proclaim": ProclaimCommand(),
     "say":      SayCommand(),
@@ -80,7 +84,10 @@ COMMANDS = {
     "chat":     ChatCommand(),
     "world":    WorldCommand(),
     "exits":    ExitsCommand(),
-    # "inventory": InventoryCommand(),
+    "i":        InventoryCommand(),
+    "inventory": InventoryCommand(),
+    "get":      GetCommand(),
+    "drop":     DropCommand(),
     "score":    ScoreCommand(),
     "hp":       HpCommand(),
     "who":      WhoCommand(),

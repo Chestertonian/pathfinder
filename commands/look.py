@@ -62,7 +62,7 @@ class LookCommand(Command):
 
         if match:
             _emit_look_event(conn, character, room, match.name)
-            return f"\n  {match.description}\n"
+            return f"\n{match.description}\n"
 
         # ── NOT FOUND ─────────────────────────────────────────────────────
         return f"  You don't see '{target_name}' here."
@@ -109,7 +109,7 @@ def _describe_room(character, conn) -> str:
     if items:
         blank()
         for item in items:
-            console.print(f"{item.name}")
+            console.print(f"{item.name}.")
 
     # Exits
     blank()
