@@ -41,6 +41,6 @@ class SmellCommand:
         if not smell or not smell.strip():
             print_info("You don't smell anything notable.")
         else:
-            console.print(f"[red]{smell}[/]")
+            console.print(f"{smell}")
 
         return None

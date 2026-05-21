@@ -33,7 +33,6 @@ class ListenCommand:
             sender_id=character.id,
             location_id=character.location_id,
             message=f"{character.name} pauses to listen.",
-            color="grey54",
             use_border=False,
         )
 
@@ -41,6 +40,6 @@ class ListenCommand:
         if not sound or not sound.strip():
             print_info("You don't hear anything notable.")
         else:
-            console.print(f"[blue]{sound}[/]")
+            console.print(f"{sound}")
 
         return None

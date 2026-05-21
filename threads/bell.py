@@ -102,6 +102,7 @@ def _bell_loop(emit_event, conn_factory):
         conn_factory : a callable that returns a DB connection (e.g. get_connection)
                        passed in so this module has no hard imports of game systems
     """
+    import os
     while True:
         # Sleep until the next :00, :15, :30, or :45
         sleep_for = _seconds_until_next_quarter()
@@ -111,6 +112,8 @@ def _bell_loop(emit_event, conn_factory):
         now = datetime.now()
         message = _build_message(now.hour, now.minute)
 
+
+        time.sleep(2)
         try:
             with conn_factory() as conn:
                 emit_event(
