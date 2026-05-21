@@ -63,12 +63,12 @@
 Veranis is governed by a Provincial Warden (or Marquis?)
 Below him, the Council.
 Council:
-- Warden (royal authority)
+- Duke (royal authority)
 - Garrison commander (military royal authority)
 - Merchant houses
 - Guilds of craft and labor
 - City magistracy
-- Mages' guild
+- Mages' guild (archmage)
 - <Temple seat>
 - Farmlands seat? 
 - Head of the watch
@@ -104,3 +104,11 @@ Old Quarter (residential)
 Temple District
 Westgate (where mercenaries cluster)
 Slums (for the thieves' guild)
+
+Duke: staff
+Commander: staff
+Archmage: staff
+Thieflord: staff
+Highpriest: staff
+Warden: staff
+

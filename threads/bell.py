@@ -73,7 +73,7 @@ def _build_message(hour_24: int, minute: int) -> str:
     
     else:
         # shouldn't happen, but a fallback
-        return "The bell chimes thirteen."
+        return "The temple bell rings."
 
 
 def _seconds_until_next_quarter() -> float:

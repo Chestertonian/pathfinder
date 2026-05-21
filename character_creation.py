@@ -166,13 +166,13 @@ def insert_character(
             cur.execute(
                 """
                 INSERT INTO characters (
-                    name, password_hash, gender, class, location_id,
+                    name, password_hash, gender, class, race, location_id,
                     strength, dexterity, constitution, intelligence, wisdom, charisma,
                     hp, hp_max, power, power_max, endurance, endurance_max
                 ) VALUES (
                     %s, %s, %s, %s, %s,
                     %s, %s, %s, %s, %s, %s,
-                    %s, %s, %s, %s, %s, %s
+                    %s, %s, %s, %s, %s, %s, %s
                 )
                 RETURNING id
                 """,
@@ -181,6 +181,7 @@ def insert_character(
                     password_hash,
                     gender,
                     char_class,
+                    race.lower(),
                     STARTING_LOCATION_ID,
                     stats["strength"],
                     stats["dexterity"],

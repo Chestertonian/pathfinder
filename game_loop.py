@@ -32,11 +32,15 @@ from commands.score import ScoreCommand
 from commands.hp import HpCommand
 from commands.time import TimeCommand
 from commands.who import WhoCommand
+from commands.finger import FingerCommand
 
 from commands.say import SayCommand
 from commands.emote import EmoteCommand
 from commands.tell import TellCommand
 from commands.chat import ChatCommand
+
+from combat.attack import AttackCommand
+from combat.flee   import FleeCommand
 
 from commands.spawn import SpawnCommand
 from commands.summon import SummonCommand
@@ -94,6 +98,9 @@ COMMANDS = {
     "smell":    SmellCommand(),
     "listen":   ListenCommand(),
     "time":     TimeCommand(),
+    "finger":   FingerCommand(),
+    "attack":   AttackCommand(),
+    "flee":     FleeCommand(),
 }
 
 
