@@ -137,7 +137,6 @@ def get_visible_events(
 
 
 def should_deliver(character, event: Event) -> bool:
-    # the event's sender_id is currently null for movement
     from events_mapper import row_to_event
     if event.event_type == "room" and event.sender_id is None:
         print("[WARN] Room event missing sender_id:", event)

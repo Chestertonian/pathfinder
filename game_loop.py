@@ -21,10 +21,17 @@ from output import blank, console, print_error, print_flavor, print_success, pro
 from broadcast import BroadcastPoller
 from command_list_temp import COMMANDS
 from events import emit_event
+from threads.bell import start_bell_thread
+
 
 from commands.look import LookCommand
+from commands.smell import SmellCommand
+from commands.listen import ListenCommand
 from commands.exits import ExitsCommand
 from commands.score import ScoreCommand
+from commands.hp import HpCommand
+from commands.time import TimeCommand
+from commands.who import WhoCommand
 
 from commands.say import SayCommand
 from commands.emote import EmoteCommand
@@ -72,9 +79,14 @@ COMMANDS = {
     "tell":     TellCommand(),
     "chat":     ChatCommand(),
     "world":    WorldCommand(),
-    "exits":     ExitsCommand(),
+    "exits":    ExitsCommand(),
     # "inventory": InventoryCommand(),
-    "score":     ScoreCommand(),
+    "score":    ScoreCommand(),
+    "hp":       HpCommand(),
+    "who":      WhoCommand(),
+    "smell":    SmellCommand(),
+    "listen":   ListenCommand(),
+    "time":     TimeCommand(),
 }
 
 
@@ -129,6 +141,8 @@ def run_game_loop(character_id: int) -> None:
     # Start the background broadcast poller
     poller = BroadcastPoller(starting_broadcast_id, character_id)
     poller.start()
+    
+    start_bell_thread(emit_event, get_connection)
 
     did_quit_cleanly = False
     

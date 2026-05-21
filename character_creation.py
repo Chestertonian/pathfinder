@@ -15,9 +15,20 @@ import secrets
 
 from db import get_connection
 from output import (
-    blank, console, print_error, print_flavor, print_info,
-    print_stat, print_success, print_title, prompt, rule,
-    COLOR_STAT, COLOR_INFO, COLOR_TITLE, COLOR_PROMPT,
+    blank,
+    console,
+    print_error,
+    print_flavor,
+    print_info,
+    print_stat,
+    print_success,
+    print_title,
+    prompt,
+    rule,
+    COLOR_STAT,
+    COLOR_INFO,
+    COLOR_TITLE,
+    COLOR_PROMPT,
 )
 
 # ---------------------------------------------------------------------------
@@ -29,18 +40,31 @@ STARTING_LOCATION_ID = 1  # TODO: replace with real starting town ID
 CLASSES = ["Fighter", "Rogue", "Wizard", "Cleric", "Ranger"]
 
 RACIAL_BONUSES = {
-    "Human":   {"strength": 1, "dexterity": 1, "constitution": 1,
-                "intelligence": 1, "wisdom": 1, "charisma": 1},
-    "Elf":     {"dexterity": 2, "intelligence": 1, "constitution": -1},
-    "Dwarf":   {"constitution": 2, "strength": 1, "charisma": -1},
-    "Gnome":   {"intelligence": 2, "wisdom": 1, "strength": -1},
+    "Human": {
+        "strength": 1,
+        "dexterity": 1,
+        "constitution": 1,
+        "intelligence": 1,
+        "wisdom": 1,
+        "charisma": 1,
+    },
+    "Elf": {"dexterity": 2, "intelligence": 1, "constitution": -1},
+    "Dwarf": {"constitution": 2, "strength": 1, "charisma": -1},
+    "Gnome": {"intelligence": 2, "wisdom": 1, "strength": -1},
     "Centaur": {"strength": 2, "constitution": 2, "intelligence": -1, "charisma": -1},
 }
 
-STAT_NAMES = ["strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma"]
-STAT_ABBR  = ["STR",      "DEX",       "CON",          "INT",          "WIS",    "CHA"]
+STAT_NAMES = [
+    "strength",
+    "dexterity",
+    "constitution",
+    "intelligence",
+    "wisdom",
+    "charisma",
+]
+STAT_ABBR = ["STR", "DEX", "CON", "INT", "WIS", "CHA"]
 
-GENDER_MALE   = 1
+GENDER_MALE = 1
 GENDER_FEMALE = 2
 
 RACE_DESCRIPTIONS = {
@@ -55,6 +79,7 @@ RACE_DESCRIPTIONS = {
 # ---------------------------------------------------------------------------
 # Password hashing
 # ---------------------------------------------------------------------------
+
 
 def hash_password(password: str) -> str:
     """Return a salted SHA-256 hash string suitable for storage."""
@@ -73,6 +98,7 @@ def verify_password(password: str, stored_hash: str) -> bool:
 # ---------------------------------------------------------------------------
 # Stat rolling
 # ---------------------------------------------------------------------------
+
 
 def roll_stat() -> int:
     """Roll 4d6, drop the lowest die, return the sum."""
@@ -97,23 +123,23 @@ def apply_racial_bonuses(stats: dict[str, int], race: str) -> dict[str, int]:
 # Derived resource stats
 # ---------------------------------------------------------------------------
 
+
 def stat_modifier(value: int) -> int:
     return (value - 10) // 2
 
 
 def calculate_starting_resources(stats: dict[str, int]) -> dict[str, int]:
-    """Derive HP, power, and endurance from final stats."""
-    con_mod = stat_modifier(stats["constitution"])
-    int_mod = stat_modifier(stats["intelligence"])
-    hp        = max(10, 25 + con_mod * 2)
-    power     = max(10, 25 + int_mod * 2)
-    endurance = 100
+    """Maybe in future, derive HP, power, and endurance from final stats. Currently, just 25."""
+    hp = 25
+    power = 25
+    endurance = 25
     return {"hp": hp, "power": power, "endurance": endurance}
 
 
 # ---------------------------------------------------------------------------
 # Database helpers
 # ---------------------------------------------------------------------------
+
 
 def name_exists(name: str) -> bool:
     """Return True if a character with this name already exists."""
@@ -151,12 +177,23 @@ def insert_character(
                 RETURNING id
                 """,
                 (
-                    name, password_hash, gender, char_class, STARTING_LOCATION_ID,
-                    stats["strength"], stats["dexterity"], stats["constitution"],
-                    stats["intelligence"], stats["wisdom"], stats["charisma"],
-                    resources["hp"], resources["hp"],
-                    resources["power"], resources["power"],
-                    resources["endurance"], resources["endurance"],
+                    name,
+                    password_hash,
+                    gender,
+                    char_class,
+                    STARTING_LOCATION_ID,
+                    stats["strength"],
+                    stats["dexterity"],
+                    stats["constitution"],
+                    stats["intelligence"],
+                    stats["wisdom"],
+                    stats["charisma"],
+                    resources["hp"],
+                    resources["hp"],
+                    resources["power"],
+                    resources["power"],
+                    resources["endurance"],
+                    resources["endurance"],
                 ),
             )
             character_id = cur.fetchone()[0]
@@ -177,7 +214,10 @@ def insert_character(
 # Display helpers
 # ---------------------------------------------------------------------------
 
-def display_stat_block(stats: dict[str, int], bonuses: dict[str, int] | None = None) -> None:
+
+def display_stat_block(
+    stats: dict[str, int], bonuses: dict[str, int] | None = None
+) -> None:
     """Print a styled stat block, showing racial bonuses if provided."""
     blank()
     for stat, abbr in zip(STAT_NAMES, STAT_ABBR):
@@ -225,9 +265,7 @@ def display_races() -> None:
         )
 
         # Print description indented underneath
-        console.print(
-            f"      [dim]{desc}[/dim]"
-        )
+        console.print(f"      [dim]{desc}[/dim]")
 
     blank()
 
@@ -236,13 +274,16 @@ def display_classes() -> None:
     """Print numbered class options."""
     blank()
     for i, cls in enumerate(CLASSES, 1):
-        console.print(f"  [{COLOR_PROMPT}][{i}][/{COLOR_PROMPT}] [{COLOR_TITLE}]{cls}[/{COLOR_TITLE}]")
+        console.print(
+            f"  [{COLOR_PROMPT}][{i}][/{COLOR_PROMPT}] [{COLOR_TITLE}]{cls}[/{COLOR_TITLE}]"
+        )
     blank()
 
 
 # ---------------------------------------------------------------------------
 # Input helpers
 # ---------------------------------------------------------------------------
+
 
 def prompt_choice(label: str, options: list) -> int:
     """Return the 0-based index of the player's choice. Loops until valid."""
@@ -281,6 +322,7 @@ def prompt_password() -> str:
 # Main creation flow
 # ---------------------------------------------------------------------------
 
+
 def run_character_creation() -> int | None:
     """
     Run the full character creation sequence.
@@ -291,7 +333,9 @@ def run_character_creation() -> int | None:
     # --- Step 1: Name ---
     blank()
     while True:
-        name = prompt_text("Enter your character's name:", min_len=2, max_len=20).capitalize()
+        name = prompt_text(
+            "Enter your character's name:", min_len=2, max_len=20
+        ).capitalize()
 
         if not name.isalpha():
             print_error("Names may only contain letters.")
@@ -299,7 +343,9 @@ def run_character_creation() -> int | None:
 
         if name_exists(name):
             print_error(f"A character named '{name}' already exists.")
-            print_info("(If this is your character, return to the main menu to log in.)")
+            print_info(
+                "(If this is your character, return to the main menu to log in.)"
+            )
             blank()
             continue
 
@@ -309,8 +355,12 @@ def run_character_creation() -> int | None:
     blank()
     print_info(f"Hello, {name}. Choose your gender:")
     blank()
-    console.print(f"  [{COLOR_PROMPT}][1][/{COLOR_PROMPT}] [{COLOR_TITLE}]Male[/{COLOR_TITLE}]")
-    console.print(f"  [{COLOR_PROMPT}][2][/{COLOR_PROMPT}] [{COLOR_TITLE}]Female[/{COLOR_TITLE}]")
+    console.print(
+        f"  [{COLOR_PROMPT}][1][/{COLOR_PROMPT}] [{COLOR_TITLE}]Male[/{COLOR_TITLE}]"
+    )
+    console.print(
+        f"  [{COLOR_PROMPT}][2][/{COLOR_PROMPT}] [{COLOR_TITLE}]Female[/{COLOR_TITLE}]"
+    )
     blank()
     gender_idx = prompt_choice(">", [GENDER_MALE, GENDER_FEMALE])
     gender = [GENDER_MALE, GENDER_FEMALE][gender_idx]
@@ -330,19 +380,25 @@ def run_character_creation() -> int | None:
     print_info("Rolling your stats (4d6, drop lowest)...")
 
     while True:
-        raw_stats   = roll_all_stats()
+        raw_stats = roll_all_stats()
         final_stats = apply_racial_bonuses(raw_stats, race)
-        bonuses     = RACIAL_BONUSES[race]
+        bonuses = RACIAL_BONUSES[race]
 
         blank()
         print_info(f"Base rolls with {race} racial bonuses applied:")
         display_stat_block(final_stats, bonuses)
 
         total = sum(final_stats.values())
-        console.print(f"  [{COLOR_INFO}]Stat total: [{COLOR_STAT}]{total}[/{COLOR_STAT}][/{COLOR_INFO}]")
+        console.print(
+            f"  [{COLOR_INFO}]Stat total: [{COLOR_STAT}]{total}[/{COLOR_STAT}][/{COLOR_INFO}]"
+        )
         blank()
-        console.print(f"  [{COLOR_PROMPT}][1][/{COLOR_PROMPT}] [{COLOR_TITLE}]Accept these stats[/{COLOR_TITLE}]")
-        console.print(f"  [{COLOR_PROMPT}][2][/{COLOR_PROMPT}] [{COLOR_TITLE}]Reroll[/{COLOR_TITLE}]")
+        console.print(
+            f"  [{COLOR_PROMPT}][1][/{COLOR_PROMPT}] [{COLOR_TITLE}]Accept these stats[/{COLOR_TITLE}]"
+        )
+        console.print(
+            f"  [{COLOR_PROMPT}][2][/{COLOR_PROMPT}] [{COLOR_TITLE}]Reroll[/{COLOR_TITLE}]"
+        )
         blank()
         choice = prompt_choice(">", ["accept", "reroll"])
         if choice == 0:
@@ -353,7 +409,7 @@ def run_character_creation() -> int | None:
     blank()
     print_info("Choose your class:")
     display_classes()
-    class_idx  = prompt_choice(">", CLASSES)
+    class_idx = prompt_choice(">", CLASSES)
     char_class = CLASSES[class_idx]
     blank()
     print_success(f"You have chosen: {char_class}.")
@@ -362,7 +418,7 @@ def run_character_creation() -> int | None:
     blank()
     print_info("Set your login password.")
     blank()
-    password      = prompt_password()
+    password = prompt_password()
     password_hash = hash_password(password)
 
     # --- Step 7: Confirm and insert ---
@@ -371,19 +427,31 @@ def run_character_creation() -> int | None:
     blank()
     rule("SUMMARY")
     blank()
-    console.print(f"[{COLOR_INFO}]Name  [/{COLOR_INFO}] [{COLOR_TITLE}]{name}[/{COLOR_TITLE}]")
-    console.print(f"[{COLOR_INFO}]Gender[/{COLOR_INFO}] [{COLOR_TITLE}]{'Male' if gender == GENDER_MALE else 'Female'}[/{COLOR_TITLE}]")
-    console.print(f"[{COLOR_INFO}]Race  [/{COLOR_INFO}] [{COLOR_TITLE}]{race}[/{COLOR_TITLE}]")
-    console.print(f"[{COLOR_INFO}]Class [/{COLOR_INFO}] [{COLOR_TITLE}]{char_class}[/{COLOR_TITLE}]")
+    console.print(
+        f"[{COLOR_INFO}]Name  [/{COLOR_INFO}] [{COLOR_TITLE}]{name}[/{COLOR_TITLE}]"
+    )
+    console.print(
+        f"[{COLOR_INFO}]Gender[/{COLOR_INFO}] [{COLOR_TITLE}]{'Male' if gender == GENDER_MALE else 'Female'}[/{COLOR_TITLE}]"
+    )
+    console.print(
+        f"[{COLOR_INFO}]Race  [/{COLOR_INFO}] [{COLOR_TITLE}]{race}[/{COLOR_TITLE}]"
+    )
+    console.print(
+        f"[{COLOR_INFO}]Class [/{COLOR_INFO}] [{COLOR_TITLE}]{char_class}[/{COLOR_TITLE}]"
+    )
     blank()
-    print_stat("HP: ",        resources["hp"])
-    print_stat("Power: ",     resources["power"])
+    print_stat("HP: ", resources["hp"])
+    print_stat("Power: ", resources["power"])
     print_stat("Endurance: ", resources["endurance"])
     display_stat_block(final_stats)
     rule()
     blank()
-    console.print(f"[{COLOR_PROMPT}][1][/{COLOR_PROMPT}] [{COLOR_TITLE}]Create this character[/{COLOR_TITLE}]")
-    console.print(f"[{COLOR_PROMPT}][2][/{COLOR_PROMPT}] [{COLOR_TITLE}]Start over[/{COLOR_TITLE}]")
+    console.print(
+        f"[{COLOR_PROMPT}][1][/{COLOR_PROMPT}] [{COLOR_TITLE}]Create this character[/{COLOR_TITLE}]"
+    )
+    console.print(
+        f"[{COLOR_PROMPT}][2][/{COLOR_PROMPT}] [{COLOR_TITLE}]Start over[/{COLOR_TITLE}]"
+    )
     blank()
     confirm = prompt_choice(">", ["confirm", "restart"])
 
