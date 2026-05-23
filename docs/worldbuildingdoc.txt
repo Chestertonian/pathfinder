@@ -1,0 +1,183 @@
+## Worldbuilding Document (Current State Summary)
+
+This document summarizes the established game world geography, major travel networks, and location ID ranges as developed so far.
+
+---
+
+# 1. Core Urban Hub
+
+### Veranis
+
+* Primary starting city and central population hub.
+* Structured urban environment with gates and controlled exit routes.
+* Main connection point to all major road systems.
+
+### Key known locations (Veranis region)
+
+* Eastern Gate complex (entry funnel into exterior road network)
+* Interior gate courtyard area (transition zone between city and road systems)
+
+---
+
+# 2. Eastern Road System
+
+### Eastern Road
+
+**ID Range: ~4–25**
+
+* Primary imperial artery extending east from Veranis.
+* Linear road with occasional minor branching and environmental variation.
+* Designed for long-distance travel with sparse but stable infrastructure.
+
+### Structure
+
+* Early segment: immediate outskirts of Veranis (IDs ~4–14)
+* Mid segment: extended rural stretch (IDs ~15–25)
+* Features:
+
+  * gradual reduction in population density
+  * introduction of minor junctions
+  * at least one inn located along the route
+  * one northern branching connection into secondary road system
+
+---
+
+# 3. Northern Road System
+
+### Northern Road
+
+**ID Range: ~33–41**
+
+* Branches north from the Eastern Road at a mid-point junction.
+* More rural, elevated terrain with hills and open sky exposure.
+* Lower traffic density than Eastern Road.
+
+### Key features
+
+* Linear progression northward
+* One major eastern branch leading into forested terrain
+* Terrain shifts from open hills → transitional forest edge
+
+---
+
+# 4. Forest System (Eastern Branch of Northern Road)
+
+### Forest Grid
+
+**ID Range: 55–84 (30 rooms total)**
+
+* Dense forest biome structured as a **5×6 grid system**.
+* Entry point: from Northern Road eastern branch (connection at room ~41 → forest entrance at ~57).
+* Fully grid-connected via cardinal directions only.
+
+### Structure
+
+* Row A (Edge zone): lighter forest, transitional canopy
+* Row B–C (Interior): standard forest density, navigable paths
+* Row D (Deep forest): low light, ancient terrain
+* Row E (Forest depths): dense, near-isolated environment
+
+### Characteristics
+
+* Fully navigable grid with N/S/E/W connections
+* Increasing density and reduced visibility toward deeper rows
+* Includes subtle clearings and “natural crosspaths” but no settlements
+
+---
+
+# 5. Southern Road System
+
+### Southern Road from Eastern Crossroad
+
+**ID Range: ~42–49 main spine**
+
+* Branches south from Eastern Road (junction at ~21 in original map context).
+* Transition from imperial road network into rural agricultural region.
+* More organic settlement pattern, less structured infrastructure.
+
+### Structure
+
+* Linear southern spine with two major divergence points:
+
+  * Southeast agricultural branch
+  * Southwest major rural expansion route
+
+### Characteristics
+
+* Increasing farmland density moving south
+* Roads become less formally maintained
+* Emergent rural economy (cottages, fields, livestock)
+
+---
+
+# 6. Southeast Agricultural Branch
+
+**ID Range: ~50–51 + settlement extension**
+
+* Narrow farmland-focused extension of southern system.
+* Light traffic, mostly local agricultural movement.
+* Leads to a small farming hamlet.
+
+---
+
+## Harthaven Hamlet (Southeast endpoint)
+
+**ID Range: 85–89**
+
+* Small rural settlement consisting of:
+
+  * clustered cottages
+  * barns and livestock areas
+  * communal well
+  * surrounding farmland
+
+### Characteristics
+
+* Non-urban, low-governance settlement
+* Economically tied to surrounding fields and regional roads
+* Acts as the endpoint of the southeast rural branch
+
+---
+
+# 7. Southwest Branch
+
+**ID Range: ~52–54**
+
+* Larger and more structurally significant rural route than southeast branch.
+* Moves toward more organized farmland and denser rural habitation.
+* Acts as the primary expansion direction of southern settlement growth.
+
+---
+
+# 8. World Structure Summary
+
+## High-level layout
+
+* **Veranis**: centralized urban hub
+* **Eastern Road**: main linear trade artery
+* **Northern Road**: rural elevation corridor with forest access
+* **Forest Grid**: dense exploration biome (30-node grid system)
+* **Southern System**: agricultural expansion network with branching settlement logic
+* **Harthaven Hamlet**: first true rural settlement outside Veranis region
+
+---
+
+# 9. Design Principles Established
+
+* Roads define geography (not the other way around)
+* Branching systems represent economic/social divergence:
+
+  * East = imperial structure
+  * North = sparse terrain transition
+  * South = rural expansion
+  * Forest = ecological density zone
+* No circular routing loops; world is a directed graph with branching expansion
+* Regions are organized by **ID ranges + region tags**, not strict uniqueness constraints on names
+
+---
+
+If you want next evolution steps, the system is now ready for:
+
+* inter-region travel constraints (blocked roads, seasonal access)
+* settlement hierarchy (hamlet → village → town progression)
+* or dynamic travel costs across biome types

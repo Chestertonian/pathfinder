@@ -111,4 +111,5 @@ Archmage: staff
 Thieflord: staff
 Highpriest: staff
 Warden: staff
-
+Rangerlord: staff
+Mercenary ones don't have names.

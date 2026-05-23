@@ -1,0 +1,171 @@
+## Worldbuilding Document (Current State Summary)
+
+This document summarizes the current geography, travel networks, and major inhabited regions in the game world. It focuses on structure, connectivity, and functional roles rather than detailed internal layouts.
+
+---
+
+# 1. Core Urban Hub
+
+### Veranis
+
+* Primary starting city and central population hub of the region.
+* Heavily structured urban environment serving as the main administrative and economic center.
+* Acts as the origin point for the major outward road systems.
+
+---
+
+# 2. Eastern Road System
+
+### Eastern Road
+
+**ID Range: ~4–27 (current known extent)**
+
+* Primary imperial trade route extending east from Veranis into rural territory.
+* Broad, stable roadway designed for consistent travel and trade movement.
+* Gradually shifts from urban outskirts into sparsely populated countryside.
+
+### Key characteristics
+
+* High structural consistency and navigability
+* Low settlement density along most of its length
+* Occasional travel infrastructure (e.g., inns, rest points, junctions)
+* Transition zone from city influence into provincial land
+
+---
+
+# 3. Northern Road System
+
+### Northern Road
+
+**ID Range: ~33–41**
+
+* Branches northward from the Eastern Road.
+* Less trafficked and more rural than the main eastern artery.
+* Leads into elevated terrain and transitional wilderness zones.
+
+### Key characteristics
+
+* Sparse traffic compared to Eastern Road
+* Increasingly natural and less maintained environment
+* Connects to forested regions through an eastern deviation
+
+---
+
+# 4. Forest Region
+
+### Forest Grid
+
+**ID Range: 55–84 (30 connected locations)**
+
+* Dense forest region structured as a fully connected grid system.
+* Entered via a branch from the Northern Road.
+* Represents a self-contained ecological zone with layered density.
+
+### Key characteristics
+
+* High-density natural environment
+* Increasing isolation toward deeper interior sections
+* Limited traversal visibility and slower movement feel
+* Contains no permanent settlements
+
+---
+
+# 5. Southern Road System
+
+### Southern Road system
+
+**ID Range: ~42–54**
+
+* Southern extension branching from the main Eastern Road system.
+* Transitions from structured imperial infrastructure into rural and agricultural territory.
+* Functions as a major expansion route into less centralized regions.
+* Now also serves as the primary access spine leading toward the Grasslands Region via southern offshoots near the mid-southern grid (around Location 13 boundary connections).
+
+### Key characteristics
+
+* Increasingly agricultural and less formally maintained
+* Multiple branching routes into rural subregions
+* Acts as a gateway into the broader Southern Lands
+
+---
+
+# 6. Southwestern Village
+
+### Brackenridge Village
+
+* Small rural settlement located west of the southwestern road branch.
+* Serves as a local agricultural and trade node for surrounding farmland.
+* Acts as a minor population center within the southern expansion region.
+
+### Functional role
+
+* Provides goods and services to surrounding rural areas
+* Serves as a waypoint between farmland and the broader road network
+* Represents the first structured settlement beyond the primary road corridors in this direction
+
+---
+
+# 7. Southeast Hamlet
+
+### Harthaven Hamlet
+
+**ID Range: 85–89**
+
+* Small farming settlement located at the terminus of a southeastern branch from the southern system.
+* Functions as a localized agricultural endpoint rather than a transit hub.
+* Closely tied to surrounding farmland and seasonal production cycles.
+
+### Functional role
+
+* Local subsistence and agricultural support
+* Minor trade and resource exchange with nearby routes
+* Acts as a geographical endpoint of its branch system
+
+# 8. Grasslands
+
+### Plains
+
+**ID range: 102-141**
+
+* Comprised of a fully connected grid of open terrain with minimal structural landmarks and no settlements.
+* No permanent settlements or constructed infrastructure
+* Terrain is uniform grid
+* South of eastern road
+
+### Functional role
+
+* Acts as the first major wilderness biome SE of the city.
+
+
+---
+
+# 8. World Structure Overview
+
+## Macro layout
+
+* **Veranis**: central urban origin point
+* **Eastern Road**: primary long-distance trade artery
+* **Northern Road**: rural and transitional route into wilderness
+* **Forest Region**: dense ecological system accessed via northern branching
+* **Grasslands Region**: open wilderness plains south of eastern road systems, accessed via eastern road.
+* **Southern Road System**: agricultural expansion network with multiple sub-branches
+* **Southwestern Village**: rural settlement node off the southern corridor
+* **Southeastern Hamlet**: endpoint farming settlement on a minor branch
+
+---
+
+# 9. Design Principles (Current State)
+
+* Geography is defined through connected travel networks rather than fixed zones
+* Settlement density decreases with distance from Veranis
+* Roads act as structural anchors for world organization
+* Wilderness regions are spatially dense and internally connected
+* Branching systems represent economic and environmental divergence rather than administrative borders
+
+---
+
+If you want the next evolution step, the world is now at the point where it can support:
+
+* regional trade logic between settlements
+* terrain-based movement modifiers (river, hills, forest density)
+* or introduction of a true “Southern Lands” macro-region beyond the current road endpoints

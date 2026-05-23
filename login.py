@@ -73,7 +73,7 @@ def run_login() -> int | None:
                         conn,
                         event_type="global",
                         sender_id=character["id"],  # FIX: was character.id
-                        message=f"<<[yellow] {character['name'].capitalize()} enters the world. >>[/]",
+                        message=f"[yellow]<< {character['name'].capitalize()} enters the world. >>[/]",
                     )
 
                     return character["id"]

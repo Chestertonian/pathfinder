@@ -121,7 +121,7 @@ def _describe_room(character, conn) -> str:
                 exit_parts.append(f"{direction} (locked)")
             else:
                 exit_parts.append(direction)
-        console.print("Exits: " + "  ".join(exit_parts))
+        console.print("Exits: " + " ".join(exit_parts))
     else:
         print_info("There are no obvious exits.")
 

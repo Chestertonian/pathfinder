@@ -88,7 +88,6 @@ class BroadcastPoller:
 
             # Process in-order
             for msg in messages:
-                print(f"[poller] last_id={self._last_id}, fetched={len(messages)}, ids={[m.id for m in messages]}")
                 # Advance cursor immediately
                 self._last_id = max(self._last_id, msg.id)
                 
