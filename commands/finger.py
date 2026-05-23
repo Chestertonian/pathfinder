@@ -8,11 +8,9 @@ Looks up a character by name and displays their public profile.
 Works whether the target is online or offline.
 """
 
-from output import console, print_info, rule, blank, COLOR_STAT, COLOR_INFO, COLOR_FLAVOR
-
 
 class FingerCommand:
-    def execute(self, character, conn, args):
+    def execute(self, character, conn, args, session):
         if not args:
             return "Finger whom?"
 
@@ -38,23 +36,20 @@ class FingerCommand:
 
         name, char_class, level, is_logged_in, created_at, location_name = row
 
-        rule()
-        console.print(f"\n  {name}", style="bold gold1", end="")
-        console.print(f"  —  {char_class.capitalize()}, Level {level}", style=COLOR_INFO)
-        blank()
+        lines = []
+        lines.append("-" * 40)
+        lines.append(f"\n  {name}\n")
+        lines.append(f"  {char_class.capitalize()}, Level {level}")
+        lines.append("")
 
         if is_logged_in:
-            console.print("  Currently online.", style="green")
+            lines.append("  Currently online.")
         else:
-            console.print("  Not logged in.", style="red")
-            # last_seen_str = last_seen.strftime("%Y-%m-%d %H:%M") if last_seen else "unknown"
-            # console.print(f"  Last seen:  ", style=COLOR_INFO, end="")
-            # console.print(last_seen_str, style=COLOR_STAT)
+            lines.append("  Not logged in.")
 
-        console.print(f"  Played since:  ", style=COLOR_INFO, end="")
-        console.print(created_at.strftime("%Y-%m-%d"), style=COLOR_STAT)
+        lines.append(f"  Played since:  {created_at.strftime('%Y-%m-%d')}")
+        lines.append("")
+        lines.append("-" * 40)
 
-        blank()
-        rule()
-
+        session.send("\n".join(lines) + "\n")
         return None

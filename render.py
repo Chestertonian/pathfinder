@@ -5,6 +5,8 @@
 #
 
 from models import Character
+from commands.proclaim import render_proclaim
+
 
 
 def render_event(conn, event):
@@ -25,37 +27,19 @@ def render_event(conn, event):
         if sender:
             sender_name = sender.name.capitalize()
 
-    # ------------------------------------------------------------
-    # GLOBAL
-    # ------------------------------------------------------------
-
     if event.event_type == "global":
-        return event.message
-
-    # ------------------------------------------------------------
-    # ROOM
-    # ------------------------------------------------------------
+        use_border = getattr(event, "use_border", False)
+        color = getattr(event, "color", "white")
+        return render_proclaim(event.message, color, use_border)
 
     if event.event_type == "room":
         return event.message
 
-    # ------------------------------------------------------------
-    # TELL
-    # ------------------------------------------------------------
-
     if event.event_type == "tell":
-        return f"[cyan]{event.message}[/]"
-
-    # ------------------------------------------------------------
-    # CHANNEL
-    # ------------------------------------------------------------
+        return f"(tell) {event.message}"          # CHANGED: stripped [cyan] tags
 
     if event.event_type == "channel":
-        channel = (event.channel or "chat").upper()
-        return f"[cyan]{sender_name} <{channel.capitalize()}> {event.message} [/cyan]"
-
-    # ------------------------------------------------------------
-    # DEFAULT
-    # ------------------------------------------------------------
+        channel = (event.channel or "chat").capitalize()
+        return f"{sender_name} <{channel}> {event.message}"  # CHANGED: stripped tags
 
     return event.message

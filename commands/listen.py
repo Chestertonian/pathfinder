@@ -13,7 +13,7 @@ from output import print_info, console
 
 
 class ListenCommand:
-    def execute(self, character, conn, args):
+    def execute(self, character, conn, args, session):
         with conn.cursor() as cur:
             cur.execute(
                 "SELECT sound FROM locations WHERE id = %s",
@@ -38,8 +38,8 @@ class ListenCommand:
 
         # Tell the user what they hear
         if not sound or not sound.strip():
-            print_info("You don't hear anything notable.")
+            session.send("You don't hear anything notable.\n")
         else:
-            console.print(f"{sound}")
+            session.send(f"{sound}\n")
 
         return None

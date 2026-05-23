@@ -41,7 +41,7 @@ def _time_phrase(hour_24: int, minute: int) -> str:
 
 
 class TimeCommand:
-    def execute(self, character, conn, args):
+    def execute(self, character, conn, args, session):
         now = datetime.now()
         phrase = _time_phrase(now.hour, now.minute)
 

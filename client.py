@@ -12,7 +12,7 @@ import socket
 import threading
 import argparse
 import sys
-
+import textwrap
 
 DEFAULT_HOST = "localhost"
 DEFAULT_PORT = 3000
@@ -32,7 +32,9 @@ def receive_loop(sock: socket.socket) -> None:
                 # Server closed the connection
                 print("\n[Disconnected from server.]")
                 sys.exit(0)
-            print(line, end="", flush=True)
+            wrapped = textwrap.fill(line.rstrip(), width=90)
+            print(wrapped, flush=True)
+
 
     except OSError:
         print("\n[Connection lost.]")

@@ -8,15 +8,9 @@ Returns a string on error, None on success (matching command interface conventio
 Needs some work.
 """
 
-from output import (
-    console,
-    print_info, rule, blank,
-    COLOR_STAT, COLOR_INFO, COLOR_FLAVOR,
-)
-
 
 class ExitsCommand:
-    def execute(self, character, conn, args):
+    def execute(self, character, conn, args, session):
         """
         character : the logged-in character object (has .location_id, .is_staff)
         conn      : active DB connection — used to query exits and location names
@@ -55,31 +49,21 @@ class ExitsCommand:
             exits = cur.fetchall()
 
         # ── Display ─────────────────────────────────────────────────────────
-        rule("Exits")
+        session.send("-- Exits --")
 
         if not exits:
-            print_info("There are no visible exits from here.")
-            rule()
+            session.send("There are no visible exits from here.\n")
             return None
 
         for direction, is_locked, is_secret, description, dest_name in exits:
 
             # Direction — left-padded so columns line up
-            console.print(f"  {direction.upper():<8} ", style="bold grey74", end="")
+            session.send(f"{direction.upper()}")
 
-            # Destination room name
-            # console.print(dest_name, style=COLOR_STAT, end="")
-
-            # Tags
-            if is_locked:
-                console.print("  [locked]", style="bold red3", end="")
             if is_secret and character.is_staff:
-                console.print("  [hidden]", style="bold dark_orange", end="")
+                session.send("  [hidden]\n")
 
-            console.print()  # end the line
+            session.send("\n")  # end the line
 
-
-        blank()
-        rule()
 
         return None  # success — no error message

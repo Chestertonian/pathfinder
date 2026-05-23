@@ -5,7 +5,7 @@ from events import emit_event
 
 
 class TellCommand:
-    def execute(self, character, conn, args):
+    def execute(self, character, conn, args, session):
         if len(args) < 2:
             return "Usage: tell <player> <message>"
 
@@ -53,7 +53,5 @@ class TellCommand:
             message=f"[magenta]You tell {target_name.capitalize()}, '{message}'[/magenta]",
             color="magenta",
         )
-
-        # console.print(f"[magenta]You tell {target_name.capitalize()}, '{message}'[/magenta]")
 
         return None

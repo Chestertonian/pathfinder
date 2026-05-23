@@ -1,7 +1,7 @@
 from events import emit_event
 
 class ChatCommand:
-    def execute(self, character, conn, args):
+    def execute(self, character, conn, args, session):
         if not args:
             return "Say what?"
 

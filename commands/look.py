@@ -4,21 +4,12 @@ commands/look.py — LookCommand
 
 from commands.base import Command
 from models import Item, NpcInstance
-from output import (
-    blank,
-    console,
-    print_flavor,
-    print_info,
-    COLOR_TITLE,
-    COLOR_INFO,
-    COLOR_STAT,
-    COLOR_PROMPT,
-)
+
 from events import emit_event
 
 
 class LookCommand(Command):
-    def execute(self, character, conn, args: list[str]) -> str:
+    def execute(self, character, conn,  args: list[str], session) -> str:
 
         # ── LOOK (no args) → describe the room ───────────────────────────
         if not args or (len(args) == 1 and args[0] == "at"):
@@ -37,7 +28,7 @@ class LookCommand(Command):
 
         if match:
             _emit_look_event(conn, character, room, match["name"])
-            return f"\n  You see a fellow adventurer.\n"
+            return f"\nYou see a fellow adventurer.\n"
 
         # ── LOOK AT NPC ───────────────────────────────────────────────────
         npcs = room.get_npcs(conn)
@@ -54,7 +45,7 @@ class LookCommand(Command):
 
         if match:
             _emit_look_event(conn, character, room, match.name)
-            return f"\n  {match.description}\n"
+            return f"\n{match.description}\n"
 
         # ── LOOK AT ITEM IN INVENTORY ─────────────────────────────────────
         inventory = Item.get_inventory(conn, character.id)
@@ -83,36 +74,32 @@ def _describe_room(character, conn) -> str:
     npcs = room.get_npcs(conn)
     players = _get_players_in_room(conn, room.id, exclude_id=character.id)
 
-    # Room name + dash underline
-    blank()
-    console.print(room.name)
-    console.print("-" * len(room.name))
+    lines = []                                          # CHANGED: build lines list
 
-    # Description
-    blank()
+    lines.append("")
+    lines.append(room.name)
+    lines.append("-" * len(room.name))
+
+    lines.append("")
     description = " ".join(room.description.split())
-    console.print(description)
+    lines.append(description)
 
-    # Other players
     if players:
-        blank()
+        lines.append("")
         for player in players:
-            console.print(f"{player['name'].capitalize()}.")
+            lines.append(f"{player['name'].capitalize()}.")
 
-    # NPCs
     if npcs:
-        blank()
+        lines.append("")
         for npc in npcs:
-            console.print(f"{npc.name.capitalize()}.")
+            lines.append(f"{npc.name.capitalize()}.")
 
-    # Items on the ground
     if items:
-        blank()
+        lines.append("")
         for item in items:
-            console.print(f"{item.name}.")
+            lines.append(f"{item.name}.")
 
-    # Exits
-    blank()
+    lines.append("")
     if exits:
         exit_parts = []
         for ex in exits:
@@ -121,13 +108,12 @@ def _describe_room(character, conn) -> str:
                 exit_parts.append(f"{direction} (locked)")
             else:
                 exit_parts.append(direction)
-        console.print("Exits: " + " ".join(exit_parts))
+        lines.append("Exits: " + " ".join(exit_parts))
     else:
-        print_info("There are no obvious exits.")
+        lines.append("There are no obvious exits.")
 
-    blank()
-    return ""
-
+    lines.append("")
+    return "\n".join(lines)              # CHANGED: return instead of print
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -178,12 +164,20 @@ def _health_condition(hp: int, hp_max: int) -> str:
     ratio = hp / hp_max
     if ratio >= 1.0:
         return "looks uninjured"
+    elif ratio >= 0.9:
+        return "is scratched"
     elif ratio >= 0.75:
-        return "has a few minor wounds"
+        return "is bleeding lightly"
+    elif ratio >= 0.6:
+        return "is bleeding"
     elif ratio >= 0.50:
-        return "is noticeably wounded"
+        return "is bleeding moderately"
+    elif ratio >= 0.35:
+        return "is wounded"
     elif ratio >= 0.25:
         return "is badly wounded"
+    elif ratio >=0.1:
+        return "is nearly dead"
     else:
         return "looks close to death"
 

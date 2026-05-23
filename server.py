@@ -17,11 +17,46 @@ import threading
 from db import get_connection, close_pool
 from login import run_login
 from character_creation import run_character_creation
-# from game_loop import run_game_loop_for_client
+from game_loop import run_game_loop_for_client
 
 
 HOST = "0.0.0.0"   # Accept connections from anywhere
 PORT = 3000
+
+TITLE=r"""
+=========================================================================================
+
+             /\                                                        /\
+            |  |                                                      |  |
+           /----\                                                    /----\
+          [______]                                                  [______]
+           |    |         _____                        _____         |    |
+           |[]  |        [     ]                      [     ]        |  []|
+           |    |       [_______][ ][ ][ ][][ ][ ][ ][_______]       |    |
+           |    [ ][ ][ ]|     |  ,----------------,  |     |[ ][ ][ ]    |
+           |             |     |/'    ____..____    '\|     |             |
+            \  []        |     |    /'    ||    '\    |     |        []  /
+             |      []   |     |   |o     ||     o|   |     |  []       |
+             |           |  _  |   |     _||_     |   |  _  |           |
+             |   []      | (_) |   |    (_||_)    |   | (_) |       []  |
+             |           |     |   |     (||)     |   |     |           |
+             |           |     |   |      ||      |   |     |           |
+           /''           |     |   |o     ||     o|   |     |           ''\
+          [_____________[_______]--'------''------'--[_______]_____________]
+
+ _______  _______ _________          _______ _________ _        ______   _______  _______ 
+(  ____ )(  ___  )\__   __/|\     /|(  ____ \\__   __/( (    /|(  __  \ (  ____ \(  ____ )
+| (    )|| (   ) |   ) (   | )   ( || (    \/   ) (   |  \  ( || (  \  )| (    \/| (    )|
+| (____)|| (___) |   | |   | (___) || (__       | |   |   \ | || |   ) || (__    | (____)|
+|  _____)|  ___  |   | |   |  ___  ||  __)      | |   | (\ \) || |   | ||  __)   |     __)
+| (      | (   ) |   | |   | (   ) || (         | |   | | \   || |   ) || (      | (\ (   
+| )      | )   ( |   | |   | )   ( || )      ___) (___| )  \  || (__/  )| (____/\| ) \ \__
+|/       |/     \|   )_(   |/     \||/       \_______/|/    )_)(______/ (_______/|/   \__/
+
+==========================================================================================
+Welcome to the realm, hero!
+=========================================================================================="""
+
 
 class ClientSession:
     """
@@ -56,6 +91,18 @@ class ClientSession:
             return line.strip()
         except OSError:
             return None
+        
+    def kick(self) -> None:                 # ADD THIS
+        """Force-close this session."""
+        try:
+            self.file.close()               # unblocks readline()
+        except OSError:
+            pass
+        try:
+            self.conn.close()
+        except OSError:
+            pass
+
 
 def handle_client(conn: socket.socket, addr):
     """
@@ -73,7 +120,8 @@ def handle_client(conn: socket.socket, addr):
     session = ClientSession(conn)
 
     try:
-        session.send("Welcome to Pathfinder!\n")
+        session.send(TITLE)
+        session.send("\n")
         session.send("[1] Create character\n[2] Login\n[3] Quit\n")
 
         while True:
@@ -86,15 +134,13 @@ def handle_client(conn: socket.socket, addr):
             elif choice == "1":
                 character_id = run_character_creation(session)
                 if character_id:
-                    print("TBD")
-                    #run_game_loop_for_client(character_id, session)
+                    run_game_loop_for_client(character_id, session)
                 break
 
             elif choice == "2":
                 character_id = run_login(session)
                 if character_id:
-                    print("TBD")
-                    #run_game_loop_for_client(character_id, session)
+                    run_game_loop_for_client(character_id, session)
                 break
 
             else:

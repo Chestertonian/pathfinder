@@ -15,7 +15,7 @@ from output import print_info
 
 
 class FleeCommand:
-    def execute(self, character, conn, args):
+    def execute(self, character, conn, args, session):
 
         with conn.cursor() as cur:
 

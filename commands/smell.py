@@ -13,7 +13,7 @@ from output import print_info, console
 
 
 class SmellCommand:
-    def execute(self, character, conn, args):
+    def execute(self, character, conn, args, session):
         with conn.cursor() as cur:
             cur.execute(
                 "SELECT smell FROM locations WHERE id = %s",
@@ -33,14 +33,13 @@ class SmellCommand:
             sender_id=character.id,
             location_id=character.location_id,
             message=f"{character.name} sniffs the air.",
-            color="grey54",
             use_border=False,
         )
 
         # Tell the user what they smell
         if not smell or not smell.strip():
-            print_info("You don't smell anything notable.")
+            session.send("You don't smell anything notable.\n")
         else:
-            console.print(f"{smell}")
+            session.send(f"{smell}\n")
 
         return None

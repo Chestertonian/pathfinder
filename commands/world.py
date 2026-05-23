@@ -2,7 +2,7 @@ from events import emit_event
 
 
 class WorldCommand:
-    def execute(self, character, conn, args):
+    def execute(self, character, conn, args, session):
         if not getattr(character, "is_staff", False):
             return "You are not permitted to use the world channel."
 

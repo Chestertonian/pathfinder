@@ -4,8 +4,8 @@ game_loop.py — Main game loop
 Thin dispatcher. Its only job is to:
   1. Load the character
   2. Start the broadcast poller
-  3. Read input, parse it, hand off to the right Command
-  4. Print the result
+  3. Read input from session, parse it, hand off to the right Command
+  4. Send the result back over session
   5. Stop the poller on quit
 
 To add a new command: write a new file in commands/, import it here,
@@ -17,12 +17,10 @@ and passed through. No command should open its own connection.
 
 from db import get_connection
 from models import BroadcastMessage, Character
-from output import blank, console, print_error, print_flavor, print_success, prompt
 from broadcast import BroadcastPoller
-from command_list_temp import COMMANDS
 from events import emit_event
 from threads.bell import start_bell_thread
-
+from commands.kick import register_session, unregister_session
 
 from commands.look import LookCommand
 from commands.smell import SmellCommand
@@ -40,23 +38,25 @@ from commands.tell import TellCommand
 from commands.chat import ChatCommand
 
 from combat.attack import AttackCommand
-from combat.flee   import FleeCommand
+from combat.flee import FleeCommand
 
 from commands.spawn import SpawnCommand
 from commands.summon import SummonCommand
 from commands.spawnitem import SpawnItemCommand
 from commands.proclaim import ProclaimCommand
 from commands.world import WorldCommand
+from commands.shutdown import ShutdownCommand
+from commands.kick import KickCommand
 
 from commands.items import GetCommand, DropCommand, InventoryCommand
 
+# CHANGED: removed all output.py imports — output now goes through session
+
 
 # ---------------------------------------------------------------------------
-# Direction aliases
+# Direction aliases — UNCHANGED
 # ---------------------------------------------------------------------------
 
-# These are shorthand aliases only.
-# Actual valid exits are determined dynamically from the exits table.
 _DIRS = {
     "n": "north", "north": "north",
     "s": "south", "south": "south",
@@ -72,7 +72,7 @@ _DIRS = {
 
 
 # ---------------------------------------------------------------------------
-# Command registry
+# Command registry — UNCHANGED
 # ---------------------------------------------------------------------------
 
 COMMANDS = {
@@ -83,6 +83,8 @@ COMMANDS = {
     "spawnitem": SpawnItemCommand(),
     "summon":    SummonCommand(),
     "proclaim":  ProclaimCommand(),
+    "shutdown":  ShutdownCommand(),
+    "kick":      KickCommand(),
 
     "say":       SayCommand(),
     ";":         EmoteCommand(),
@@ -117,44 +119,34 @@ COMMANDS = {
 # ---------------------------------------------------------------------------
 
 def _parse(raw: str) -> tuple[str, list[str]]:
-    """
-    Split raw input into (verb, args).
-
-    Returns:
-        ("", []) for empty input.
-    """
-
+    """Split raw input into (verb, args). UNCHANGED."""
     if raw.startswith(";"):
         raw = "emote " + raw[1:].lstrip()
-
     parts = raw.strip().split()
-
     if not parts:
         return ("", [])
-
     return (parts[0].lower(), parts[1:])
 
 
-def _run_command(command, character, conn, args):
-    """Execute a command and print its string output if any."""
-
-    output = command.execute(character, conn, args)
-
+def _run_command(command, character, conn, args, session):
+    # CHANGED: takes session, sends output over socket instead of console.print()
+    output = command.execute(character, conn, args, session)
     if output:
-        console.print(output)
+        session.send(output + "\n")
 
 
 # ---------------------------------------------------------------------------
 # Game loop
 # ---------------------------------------------------------------------------
 
-def run_game_loop(character_id: int) -> None:
+def run_game_loop_for_client(character_id: int, session) -> None:
+    # CHANGED: renamed, takes session instead of using local terminal
     """
-    Main game loop.
+    Main game loop for a networked client session.
 
     Responsibilities:
       - Load player
-      - Start broadcast polling
+      - Start broadcast polling (session-aware)
       - Handle commands
       - Handle movement
       - Clean shutdown
@@ -168,10 +160,10 @@ def run_game_loop(character_id: int) -> None:
         character = Character.get_by_id(conn, character_id)
 
     if character is None:
-        print_error("Could not load character. Returning to menu.")
+        session.send("Could not load character. Returning to menu.\n")  # CHANGED
         return
 
-    print_success(f"Entering the world as {character.name.capitalize()}...")
+    session.send(f"Entering the world as {character.name.capitalize()}...\n")  # CHANGED
 
     # -------------------------------------------------------------------
     # Broadcast startup
@@ -180,12 +172,13 @@ def run_game_loop(character_id: int) -> None:
     with get_connection() as conn:
         starting_broadcast_id = BroadcastMessage.get_latest_id(conn)
 
-    poller = BroadcastPoller(starting_broadcast_id, character_id)
+    # CHANGED: pass session into poller so it sends to the right player
+    poller = BroadcastPoller(starting_broadcast_id, character_id, session)
     poller.start()
+    register_session(character_id, session)
+
 
     start_bell_thread(emit_event, get_connection)
-
-    did_quit_cleanly = False
 
     try:
 
@@ -195,7 +188,7 @@ def run_game_loop(character_id: int) -> None:
 
         with get_connection() as conn:
             character = Character.get_by_id(conn, character_id)
-            _run_command(COMMANDS["look"], character, conn, [])
+            _run_command(COMMANDS["look"], character, conn, [], session)  # CHANGED
 
         # ---------------------------------------------------------------
         # Main loop
@@ -203,7 +196,12 @@ def run_game_loop(character_id: int) -> None:
 
         while True:
 
-            raw = prompt(">")
+            session.send("> ")                # CHANGED: was prompt(">")
+            raw = session.recv()              # CHANGED: reads from socket
+
+            if raw is None:
+                # Player disconnected unexpectedly
+                break
 
             if not raw:
                 continue
@@ -216,19 +214,15 @@ def run_game_loop(character_id: int) -> None:
 
             if verb in ("quit", "exit", "q"):
 
-                blank()
-
-                print_flavor(
-                    f"{character.name.capitalize()} rests for now. Farewell."
+                session.send("\n")
+                session.send(
+                    f"{character.name.capitalize()} rests for now. Farewell.\n"
                 )
-
-                blank()
+                session.send("\n")
 
                 with get_connection() as conn:
-
                     character = Character.get_by_id(conn, character_id)
                     room = character.get_room(conn)
-
                     emit_event(
                         conn,
                         event_type="room",
@@ -237,7 +231,6 @@ def run_game_loop(character_id: int) -> None:
                         message=f"{character.name.capitalize()} fades from the world.",
                     )
 
-                did_quit_cleanly = True
                 break
 
             # -----------------------------------------------------------
@@ -249,14 +242,7 @@ def run_game_loop(character_id: int) -> None:
                 character = Character.get_by_id(conn, character_id)
                 room = character.get_room(conn)
 
-                # -------------------------------------------------------
-                # Dynamic exit traversal
-                # -------------------------------------------------------
-
-                # Resolve shorthand aliases first.
-                # Example: "n" -> "north"
                 direction = _DIRS.get(verb, verb)
-
                 exit_data = room.get_exit(conn, direction)
 
                 # -------------------------------------------------------
@@ -266,21 +252,17 @@ def run_game_loop(character_id: int) -> None:
                 if exit_data is not None:
 
                     if exit_data["is_locked"]:
-                        print_error("That way is locked.")
+                        session.send("That way is locked.\n")  # CHANGED
                         continue
 
                     old_room = room.id
                     new_room = exit_data["to_location"]
 
                     character.move_to(conn, new_room)
-
-                    # Refresh room after movement
                     character = Character.get_by_id(conn, character_id)
 
-                    # Auto-look
-                    _run_command(COMMANDS["look"], character, conn, [])
+                    _run_command(COMMANDS["look"], character, conn, [], session)  # CHANGED
 
-                    # Departure event
                     emit_event(
                         conn,
                         event_type="room",
@@ -289,7 +271,6 @@ def run_game_loop(character_id: int) -> None:
                         message=f"{character.name} leaves {direction}.",
                     )
 
-                    # Arrival event
                     emit_event(
                         conn,
                         event_type="room",
@@ -305,23 +286,15 @@ def run_game_loop(character_id: int) -> None:
                 # -------------------------------------------------------
 
                 if verb in COMMANDS:
-
-                    _run_command(
-                        COMMANDS[verb],
-                        character,
-                        conn,
-                        args,
-                    )
-
+                    _run_command(COMMANDS[verb], character, conn, args, session)  # CHANGED
                     continue
 
                 # -------------------------------------------------------
                 # Unknown
                 # -------------------------------------------------------
 
-                print_error(
-                    f"Unknown command '{verb}'. "
-                    f"Try: look, north, inside, quit."
+                session.send(                 # CHANGED
+                    f"Unknown command '{verb}'. Try: look, north, quit.\n"
                 )
 
     finally:
@@ -331,76 +304,22 @@ def run_game_loop(character_id: int) -> None:
         # ---------------------------------------------------------------
 
         poller.stop()
+        unregister_session(character_id)
 
         # ---------------------------------------------------------------
         # Always mark player offline
         # ---------------------------------------------------------------
 
         try:
-
             with get_connection() as conn:
-
                 with conn.cursor() as cur:
-
                     cur.execute(
-                        """
-                        UPDATE characters
-                        SET is_logged_in = FALSE
-                        WHERE id = %s
-                        """,
+                        "UPDATE characters SET is_logged_in = FALSE WHERE id = %s",
                         (character_id,),
                     )
-
                 conn.commit()
 
         except Exception as e:
-
             print(f"[FATAL] Failed to mark character offline: {e}")
-
-
-# ---------------------------------------------------------------------------
-# Network hook
-# ---------------------------------------------------------------------------
-
-# Not currently in use.
-def run_command_for_network(character_id: int, raw: str):
-
-    parts = raw.strip().split()
-
-    if not parts:
-        return ""
-
-    verb = parts[0].lower()
-    args = parts[1:]
-
-    with get_connection() as conn:
-
-        character = Character.get_by_id(conn, character_id)
-
-        if character is None:
-            return "Character not found."
-
-        room = character.get_room(conn)
-
-        # Allow custom exits over network too
-        direction = _DIRS.get(verb, verb)
-
-        exit_data = room.get_exit(conn, direction)
-
-        if exit_data is not None:
-
-            if exit_data["is_locked"]:
-                return "That way is locked."
-
-            character.move_to(conn, exit_data["to_location"])
-
-            return f"You go {direction}."
-
-        # Registered command
-        if verb in COMMANDS:
-
-            cmd = COMMANDS[verb]
-
-            return cmd.execute(character, conn, args)
-
-        return f"Unknown command: {verb}"
+            # NOTE: print() here is intentional — this is a server-side
+            # error log, not player output. Session may already be dead.

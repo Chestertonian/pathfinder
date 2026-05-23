@@ -6,11 +6,9 @@ Lists all characters currently online, their class, and location name.
 No emit_event() needed — this is a personal UI panel.
 """
 
-from output import console, rule, print_info, blank, COLOR_STAT, COLOR_INFO
-
 
 class WhoCommand:
-    def execute(self, character, conn, args):
+    def execute(self, character, conn, args, session):
         with conn.cursor() as cur:
             cur.execute(
                 """
@@ -22,22 +20,20 @@ class WhoCommand:
             )
             rows = cur.fetchall()
 
-        rule("Who is Online")
-        blank()
+        session.send("======== Who is Online ========")
+        session.send("\n\n")
 
         if not rows:
-            print_info("No one is online.")
+            session.send("No one is online.\n")
         else:
             for name, char_class in rows:
-                console.print(f"  {name:<20}", style="bold grey74", end="")
-                console.print(f"the {char_class.capitalize():<12}\n", style=COLOR_STAT, end="")
+                session.send(f"  {name:<20}")
+                session.send(f"the {char_class.capitalize():<12}\n")
 
-        blank()
-        console.print(
-            f"  {len(rows)} player{'s' if len(rows) != 1 else ''} online.",
-            style="grey54",
+        session.send(' ')
+        session.send(
+            f"  {len(rows)} player{'s' if len(rows) != 1 else ''} online.\n",
         )
-        blank()
-        rule()
+        session.send("===============================\n")
 
         return None

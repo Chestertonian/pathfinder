@@ -3,7 +3,7 @@ from output import console
 
 
 class EmoteCommand:
-    def execute(self, character, conn, args):
+    def execute(self, character, conn, args, session):
         if not args:
             return "Emote what?"
 
@@ -29,6 +29,6 @@ class EmoteCommand:
             message=message,
         )
         
-        console.print(message)
+        session.send(message+"\n")
 
         return None

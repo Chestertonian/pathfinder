@@ -8,12 +8,11 @@ Searches item_templates by name (partial match) and spawns the first
 match as a new item_instance in the staff member's current room.
 """
 
-from events import emit_event
 from output import print_info
 
 
 class SpawnItemCommand:
-    def execute(self, character, conn, args):
+    def execute(self, character, conn, args, session):
         if not character.is_staff:
             return "You are not permitted to do that."
 

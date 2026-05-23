@@ -7,21 +7,9 @@ Example output:
     10/10 HP  -  8/8 SP  -  9/9 EP
 """
 
-from output import console, COLOR_STAT, COLOR_INFO
-
-
 class HpCommand:
-    def execute(self, character, conn, args):
+    def execute(self, character, conn, args, session):
         c = character
-
-        console.print(
-            f"  {c.hp}/{c.hp_max} HP",
-            style=COLOR_STAT,
-            end="",
-        )
-        console.print("  -  ", style=COLOR_INFO, end="")
-        console.print(f"{c.power}/{c.power_max} SP", style=COLOR_STAT, end="")
-        console.print("  -  ", style=COLOR_INFO, end="")
-        console.print(f"{c.endurance}/{c.endurance_max} EP", style=COLOR_STAT)
-
+        session.send(
+            f"{c.hp}/{c.hp_max} HP - {c.power}/{c.power_max} SP - {c.endurance}/{c.endurance_max} EP \n")
         return None
