@@ -19,7 +19,6 @@ from db import get_connection
 from models import BroadcastMessage, Character
 from broadcast import BroadcastPoller
 from events import emit_event
-from threads.bell import start_bell_thread
 from commands.kick import register_session, unregister_session
 
 from commands.look import LookCommand
@@ -47,6 +46,10 @@ from commands.proclaim import ProclaimCommand
 from commands.world import WorldCommand
 from commands.shutdown import ShutdownCommand
 from commands.kick import KickCommand
+from commands.find import FindCommand
+from commands.goto import GotoCommand
+from commands.players import PlayersCommand
+from commands.setstat import SetstatCommand
 
 from commands.items import GetCommand, DropCommand, InventoryCommand
 
@@ -85,6 +88,10 @@ COMMANDS = {
     "proclaim":  ProclaimCommand(),
     "shutdown":  ShutdownCommand(),
     "kick":      KickCommand(),
+    "find":      FindCommand(),
+    "goto":      GotoCommand(),
+    "setstat":   SetstatCommand(),
+    "players":   PlayersCommand(),
 
     "say":       SayCommand(),
     ";":         EmoteCommand(),
@@ -132,7 +139,7 @@ def _run_command(command, character, conn, args, session):
     # CHANGED: takes session, sends output over socket instead of console.print()
     output = command.execute(character, conn, args, session)
     if output:
-        session.send(output + "\n")
+        session.send("\n"+output + "\n\n")
 
 
 # ---------------------------------------------------------------------------
@@ -178,8 +185,6 @@ def run_game_loop_for_client(character_id: int, session) -> None:
     register_session(character_id, session)
 
 
-    start_bell_thread(emit_event, get_connection)
-
     try:
 
         # ---------------------------------------------------------------
@@ -196,7 +201,6 @@ def run_game_loop_for_client(character_id: int, session) -> None:
 
         while True:
 
-            session.send("> ")                # CHANGED: was prompt(">")
             raw = session.recv()              # CHANGED: reads from socket
 
             if raw is None:

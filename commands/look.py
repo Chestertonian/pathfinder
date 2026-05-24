@@ -75,11 +75,11 @@ def _describe_room(character, conn) -> str:
     players = _get_players_in_room(conn, room.id, exclude_id=character.id)
 
     lines = []                                          # CHANGED: build lines list
-
+    lines.append("\n")
     lines.append("")
     lines.append(room.name)
     lines.append("-" * len(room.name))
-
+    lines.append("\n")
     lines.append("")
     description = " ".join(room.description.split())
     lines.append(description)
@@ -108,6 +108,7 @@ def _describe_room(character, conn) -> str:
                 exit_parts.append(f"{direction} (locked)")
             else:
                 exit_parts.append(direction)
+        lines.append('\n')
         lines.append("Exits: " + " ".join(exit_parts))
     else:
         lines.append("There are no obvious exits.")

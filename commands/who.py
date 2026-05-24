@@ -20,7 +20,7 @@ class WhoCommand:
             )
             rows = cur.fetchall()
 
-        session.send("======== Who is Online ========")
+        session.send("\n======== Who is Online ========")
         session.send("\n\n")
 
         if not rows:
