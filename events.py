@@ -115,7 +115,8 @@ def get_visible_events(
                 channel,
                 message,
                 color,
-                use_border
+                use_border,
+                created_at
             FROM broadcast_messages
             WHERE id > %s
             ORDER BY id ASC
@@ -139,8 +140,10 @@ def get_visible_events(
 def should_deliver(character, event: Event) -> bool:
     from events_mapper import row_to_event
     if event.event_type == "room" and event.sender_id is None:
-        print("[WARN] Room event missing sender_id:", event)
-        return False
+        raise ValueError("[WARN] Room event missing sender_id.")
+    if event.event_type == "combat" and event.sender_id is None and event.location_id is None:
+        raise ValueError("Combat events must have at least a location_id")
+
     # -------------------------------------------------------
     # Global events (always visible)
     # -------------------------------------------------------
@@ -148,12 +151,21 @@ def should_deliver(character, event: Event) -> bool:
         return True
 
     # -------------------------------------------------------
-    # Room events (NO SELF-ECHO, EVER)
+    # Room events
     # -------------------------------------------------------
-    if event.event_type == "room":
-        if event.sender_id == character.id:
+    if event.event_type in ("room", "combat"):
+        if event.event_type == "room" and event.sender_id == character.id:
             return False
-        return event.location_id == character.location_id
+        if event.location_id != character.location_id:
+            return False
+        # ADDED: skip events from before the player entered this room
+        if (
+            character.room_entered_at
+            and event.created_at
+            and event.created_at < character.room_entered_at
+        ):
+            return False
+        return True
 
     # -------------------------------------------------------
     # Tell events (private messaging)
@@ -168,4 +180,11 @@ def should_deliver(character, event: Event) -> bool:
     if event.event_type == "channel":
         return True
 
+    # -------------------------------------------------------
+    # System messages
+    # -------------------------------------------------------    
+    if event.event_type == "system":
+        return event.sender_id == character.id
+
+    
     return False

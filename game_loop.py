@@ -254,18 +254,43 @@ def run_game_loop_for_client(character_id: int, session) -> None:
                 # -------------------------------------------------------
 
                 if exit_data is not None:
+                    
+                    if character.endurance <= 0:
+                        session.send("You are too exhausted to move.\n")
+                        continue
 
                     if exit_data["is_locked"]:
-                        session.send("That way is locked.\n")  # CHANGED
+                        session.send("That way is locked.\n")
                         continue
 
                     old_room = room.id
                     new_room = exit_data["to_location"]
 
                     character.move_to(conn, new_room)
-                    character = Character.get_by_id(conn, character_id)
 
-                    _run_command(COMMANDS["look"], character, conn, [], session)  # CHANGED
+                    # ADDED: record when player entered the new room
+                    with conn.cursor() as cur:
+                        cur.execute(
+                            "UPDATE characters SET room_entered_at = NOW() WHERE id = %s",
+                            (character.id,)
+                        )
+                    with conn.cursor() as cur:
+                        cur.execute(
+                            """
+                            UPDATE characters
+                            SET endurance = GREATEST(0, endurance - %s)
+                            WHERE id = %s
+                            """,
+                            (exit_data["cost"], character.id),
+                        )
+
+                    # Check if player is now out of EP
+                    character = Character.get_by_id(conn, character_id)
+                    if character.endurance <= 0:
+                        session.send("You are exhausted and cannot move.\n")
+
+                    character = Character.get_by_id(conn, character_id)
+                    _run_command(COMMANDS["look"], character, conn, [], session)
 
                     emit_event(
                         conn,
@@ -284,7 +309,6 @@ def run_game_loop_for_client(character_id: int, session) -> None:
                     )
 
                     continue
-
                 # -------------------------------------------------------
                 # Registered commands
                 # -------------------------------------------------------

@@ -8,7 +8,7 @@ in game_loop.py never needs to know what a command does internally.
 
 
 class Command:
-    def execute(self, character, conn, args: list[str]) -> str:
+    def execute(self, character, conn, args: list[str], session) -> str:
         """
         Execute this command and return output as a string.
 

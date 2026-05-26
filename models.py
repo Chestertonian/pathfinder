@@ -142,15 +142,18 @@ class Character:
         self.wisdom        = row["wisdom"]
         self.charisma      = row["charisma"]
 
+        # Movement tracking
+        self.room_entered_at = row.get("room_entered_at")  # ADDED
+
     @staticmethod
     def get_by_id(conn, character_id: int) -> "Character | None":
-        """Fetch a character by ID. Returns None if not found."""
         with conn.cursor() as cur:
             cur.execute(
                 """
                 SELECT id, name, class, level, xp, location_id, is_staff,
                        hp, hp_max, power, power_max, endurance, endurance_max, gold,
-                       strength, dexterity, constitution, intelligence, wisdom, charisma
+                       strength, dexterity, constitution, intelligence, wisdom, charisma,
+                       room_entered_at
                 FROM characters
                 WHERE id = %s
                 """,
@@ -160,26 +163,27 @@ class Character:
             if row is None:
                 return None
             return Character({
-                "id":            row[0],
-                "name":          row[1],
-                "class":         row[2],
-                "level":         row[3],
-                "xp":            row[4],
-                "location_id":   row[5],
-                "is_staff":      row[6],
-                "hp":            row[7],
-                "hp_max":        row[8],
-                "power":         row[9],
-                "power_max":     row[10],
-                "endurance":     row[11],
-                "endurance_max": row[12],
-                "gold":          row[13],
-                "strength":      row[14],
-                "dexterity":     row[15],
-                "constitution":  row[16],
-                "intelligence":  row[17],
-                "wisdom":        row[18],
-                "charisma":      row[19],
+                "id":             row[0],
+                "name":           row[1],
+                "class":          row[2],
+                "level":          row[3],
+                "xp":             row[4],
+                "location_id":    row[5],
+                "is_staff":       row[6],
+                "hp":             row[7],
+                "hp_max":         row[8],
+                "power":          row[9],
+                "power_max":      row[10],
+                "endurance":      row[11],
+                "endurance_max":  row[12],
+                "gold":           row[13],
+                "strength":       row[14],
+                "dexterity":      row[15],
+                "constitution":   row[16],
+                "intelligence":   row[17],
+                "wisdom":         row[18],
+                "charisma":       row[19],
+                "room_entered_at": row[20],  
             })
 
     def get_room(self, conn) -> "Room | None":

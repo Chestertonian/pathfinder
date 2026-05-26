@@ -18,6 +18,12 @@ from db import get_connection, close_pool
 from login import run_login
 from character_creation import run_character_creation
 from game_loop import run_game_loop_for_client
+from threads.bell import start_bell_thread
+from threads.regen import start_regen_thread
+from events import emit_event
+from combat.scheduler import CombatScheduler
+
+
 
 
 HOST = "0.0.0.0"   # Accept connections from anywhere
@@ -170,6 +176,11 @@ def start_server():
     server_socket.listen()
 
     print(f"[server] Listening on {HOST}:{PORT}")
+    start_bell_thread(emit_event, get_connection)
+    scheduler = CombatScheduler()
+    scheduler.start()
+    start_regen_thread(get_connection)
+
 
     try:
         while True:

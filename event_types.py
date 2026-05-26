@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Optional
+from datetime import datetime
 
 
 @dataclass
@@ -16,3 +17,4 @@ class Event:
     message: str
     color: str
     use_border: bool
+    created_at: Optional[datetime] = None  # ADDED

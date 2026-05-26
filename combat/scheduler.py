@@ -151,17 +151,22 @@ class CombatScheduler:
             message = f"{attacker['name']} hits {defender['name']} for {damage} damage."
 
         # sender_id: only set if attacker is a character (room events need it)
-        sender_id = attacker["id"] if attacker["type"] == "character" else None
+        sender_id = (
+            attacker["id"] if attacker["type"] == "character"
+            else defender["id"] if defender["type"] == "character"
+            else None
+        )
 
         emit_event(
             conn,
-            event_type="room",
+            event_type="combat",
             sender_id=sender_id,
             location_id=location_id,
             message=message,
             color="red3",
             use_border=False,
         )
+        
 
         # --- Ability hook (placeholder) ---
         # When abilities are implemented, import and call here:
@@ -185,7 +190,7 @@ class CombatScheduler:
 
         emit_event(
             conn,
-            event_type="room",
+            event_type="combat",
             sender_id=killer_id if killer_type == "character" else None,
             location_id=location_id,
             message=f"{name} has been slain.",
@@ -197,6 +202,10 @@ class CombatScheduler:
             self._handle_player_death(conn, dead_id, location_id)
         else:
             self._handle_npc_death(conn, dead_id, location_id)
+            
+            if killer_type == "character":
+                self._award_xp(conn, killer_id, dead_id, location_id)
+
 
         # Remove ALL combat rows involving this entity
         _delete_combats_for(conn, dead_type, dead_id)
@@ -240,9 +249,9 @@ class CombatScheduler:
 
         emit_event(
             conn,
-            event_type="system",
+            event_type="global",
             sender_id=character_id,
-            message="You have died.",
+            message=f"Someone died!",
             color="bold red3",
             use_border=True,
         )
@@ -252,7 +261,7 @@ class CombatScheduler:
             cur.execute(
                 """
                 UPDATE npc_instances
-                SET is_alive = FALSE, hp = 0
+                SET is_alive = FALSE, hp = 0, updated_at = NOW()
                 WHERE id = %s
                 """,
                 (npc_id,),
@@ -270,6 +279,73 @@ class CombatScheduler:
                 """,
                 (location_id, npc_id),
             )
+    def _award_xp(self, conn, character_id: int, npc_id: int, location_id: int):
+        """Award XP to a character for killing an NPC. Level up if threshold met."""
+
+        # Get XP reward from the template
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT nt.xp
+                FROM npc_instances ni
+                JOIN npc_templates nt ON nt.id = ni.npc_template_id
+                WHERE ni.id = %s
+                """,
+                (npc_id,),
+            )
+            row = cur.fetchone()
+
+        if row is None or row[0] == 0:
+            return
+
+        xp_reward = row[0]
+
+        with conn.cursor() as cur:
+            # Fetch current xp and level
+            cur.execute(
+                "SELECT xp, level FROM characters WHERE id = %s",
+                (character_id,),
+            )
+            row = cur.fetchone()
+
+        if row is None:
+            return
+
+        current_xp, current_level = row
+        new_xp = current_xp + xp_reward
+
+        # Check for level up
+        new_level = current_level
+        while new_xp >= _xp_required(new_level):
+            new_xp -= _xp_required(new_level)
+            new_level += 1
+
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE characters SET xp = %s, level = %s WHERE id = %s",
+                (new_xp, new_level, character_id),
+            )
+
+        # Notify player of XP gain
+        emit_event(
+            conn,
+            event_type="system",
+            sender_id=character_id,
+            message=f"You gain {xp_reward} XP.",
+        )
+
+        # Notify player of level up
+        if new_level > current_level:
+                # Apply stat gains for each level gained
+                for _ in range(new_level - current_level):
+                    _apply_level_up_gains(conn, character_id)
+
+                emit_event(
+                    conn,
+                    event_type="system",
+                    sender_id=character_id,
+                    message=f"You have reached level {new_level}!",
+                )
 
 
 # ------------------------------------------------------------------
@@ -368,4 +444,73 @@ def _delete_combats_for(conn, entity_type: str, entity_id: int):
                OR (defender_type = %s AND defender_id = %s)
             """,
             (entity_type, entity_id, entity_type, entity_id),
+        )
+        
+def _xp_required(level: int) -> int:
+    """
+    XP needed to level up from this level.
+    Exponential curve — gets steep fast at high levels.
+
+    Examples:
+        level 1  →  100 XP
+        level 2  →  250 XP
+        level 5  →  1250 XP
+        level 10 →  5000 XP
+    """
+    BASE = 1000
+    K    = 2.3
+    return int(BASE * (level ** K))
+
+
+def _apply_level_up_gains(conn, character_id: int) -> None:
+    """
+    Apply HP, SP, and EP gains on level up.
+
+    HP = base 8 + CON mod + 1/2 STR mod (minimum 1)
+    SP = base 8 + INT mod + 1/2 WIS mod (minimum 1)
+    EP = flat 10
+    """
+
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT constitution, intelligence, strength, wisdom
+                   hp_max, power_max, endurance_max
+            FROM characters
+            WHERE id = %s
+            """,
+            (character_id,),
+        )
+        row = cur.fetchone()
+
+    if row is None:
+        return
+
+    con, int_, str_, wis, hp_max, sp_max, ep_max = row
+
+    def mod(stat):
+        return (stat - 10) // 2
+
+    hp_gain = max(1, 8 + mod(con) + (mod(str_)/2))
+    sp_gain = max(1, 4 + mod(int_) + (mod(wis)/2))
+    ep_gain = 10
+
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            UPDATE characters
+            SET hp_max        = hp_max + %s,
+                hp            = hp + %s,
+                power_max     = power_max + %s,
+                power         = power + %s,
+                endurance_max = endurance_max + %s,
+                endurance     = endurance + %s
+            WHERE id = %s
+            """,
+            (
+                hp_gain, hp_gain,
+                sp_gain, sp_gain,
+                ep_gain, ep_gain,
+                character_id,
+            ),
         )

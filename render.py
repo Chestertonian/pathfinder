@@ -41,5 +41,8 @@ def render_event(conn, event):
     if event.event_type == "channel":
         channel = (event.channel or "chat").capitalize()
         return f"{sender_name} <{channel}> {event.message}"  # CHANGED: stripped tags
-
+    
+    if event.event_type == "combat":
+        return event.message
+    
     return event.message

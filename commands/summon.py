@@ -21,7 +21,7 @@ from models import NpcTemplate, NpcInstance
 
 
 class SummonCommand(Command):
-    def execute(self, character, conn, args: list[str]) -> str:
+    def execute(self, character, conn, args: list[str], session) -> str:
 
         # ── Staff check ───────────────────────────────────────────────────
         if not character.is_staff:

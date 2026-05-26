@@ -75,7 +75,7 @@ def _describe_room(character, conn) -> str:
     players = _get_players_in_room(conn, room.id, exclude_id=character.id)
 
     lines = []                                          # CHANGED: build lines list
-    lines.append("\n")
+    lines.append("\n\n")
     lines.append("")
     lines.append(room.name)
     lines.append("-" * len(room.name))

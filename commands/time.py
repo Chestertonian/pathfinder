@@ -45,6 +45,6 @@ class TimeCommand:
         now = datetime.now()
         phrase = _time_phrase(now.hour, now.minute)
 
-        console.print(f"  {phrase}", style=COLOR_FLAVOR)
+        session.send(f"{phrase}")
 
         return None
