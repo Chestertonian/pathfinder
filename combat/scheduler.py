@@ -474,7 +474,7 @@ def _apply_level_up_gains(conn, character_id: int) -> None:
     with conn.cursor() as cur:
         cur.execute(
             """
-            SELECT constitution, intelligence, strength, wisdom
+            SELECT constitution, intelligence, strength, wisdom,
                    hp_max, power_max, endurance_max
             FROM characters
             WHERE id = %s

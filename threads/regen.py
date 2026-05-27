@@ -146,26 +146,29 @@ def _regen_players(conn):
 # ---------------------------------------------------------------------------
 # NPC respawning
 # ---------------------------------------------------------------------------
-
 def _respawn_npcs(conn):
     """
-    Respawn dead NPCs that have a home room and have been dead long enough.
-    Respawn time is defined per npc_template (respawn_seconds column).
+    Respawn dead NPCs that have an entry in npc_spawns and have been
+    dead long enough. Respawn time is defined per npc_template.
+
+    home_room_id is NOT used for respawning — it's for patrol/movement only.
     """
     with conn.cursor() as cur:
         cur.execute(
             """
-            SELECT ni.id, ni.home_room_id, nt.hp_max, nt.respawn_seconds
+            SELECT ni.id, ns.location_id, nt.hp_max
             FROM npc_instances ni
             JOIN npc_templates nt ON nt.id = ni.npc_template_id
+            JOIN npc_spawns ns ON ns.npc_template_id = ni.npc_template_id
+                               AND ns.location_id = ni.location_id
             WHERE ni.is_alive = FALSE
-              AND ni.home_room_id IS NOT NULL
+              AND ns.is_active = TRUE
               AND NOW() - ni.updated_at > (nt.respawn_seconds || ' seconds')::interval
             """
         )
         dead_npcs = cur.fetchall()
 
-        for npc_id, home_room_id, hp_max, _ in dead_npcs:
+        for npc_id, spawn_location_id, hp_max in dead_npcs:
             cur.execute(
                 """
                 UPDATE npc_instances
@@ -175,9 +178,9 @@ def _respawn_npcs(conn):
                     updated_at  = NOW()
                 WHERE id = %s
                 """,
-                (hp_max, home_room_id, npc_id),
+                (hp_max, spawn_location_id, npc_id),
             )
-
+            
 # ---------------------------------------------------------------------------
 # Stale combat cleanup
 # ---------------------------------------------------------------------------
