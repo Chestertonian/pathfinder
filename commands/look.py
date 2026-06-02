@@ -1,11 +1,21 @@
 """
 commands/look.py — LookCommand
 """
+from collections import Counter
 
 from commands.base import Command
 from models import Item, NpcInstance
+from output import to_ansi
 
 from events import emit_event
+
+IRREGULAR_PLURALS = {
+    "wolf": "wolves",
+    "ox": "oxen",
+    "dwarf": "dwarves",
+    "elf": "elves",
+    # add as encountered
+}
 
 
 class LookCommand(Command):
@@ -62,8 +72,6 @@ class LookCommand(Command):
 # ---------------------------------------------------------------------------
 # Room description
 # ---------------------------------------------------------------------------
-
-
 def _describe_room(character, conn) -> str:
     room = character.get_room(conn)
     if room is None:
@@ -74,48 +82,47 @@ def _describe_room(character, conn) -> str:
     npcs = room.get_npcs(conn)
     players = _get_players_in_room(conn, room.id, exclude_id=character.id)
 
-    lines = []                                          # CHANGED: build lines list
-    lines.append("\n\n")
-    lines.append("")
-    lines.append(room.name)
-    lines.append("-" * len(room.name))
+    lines = []
+
+    lines.append(f"\033[33m{room.name}\033[0m")   # amber color for name
     lines.append("\n")
-    lines.append("")
-    description = " ".join(room.description.split())
+
+    description = "   " + " ".join(room.description.split())  # indent
     lines.append(description)
+    lines.append("\n")
 
     if players:
-        lines.append("")
         for player in players:
             lines.append(f"{player['name'].capitalize()}.")
+        lines.append("\n")
 
     if npcs:
-        lines.append("")
-        for npc in npcs:
-            lines.append(f"{npc.name.capitalize()}.")
+        lines.append("\n")
+        counts = Counter(npc.name.lower() for npc in npcs)
+        for name, count in counts.items():
+            if count == 1:
+                lines.append(f"{name.capitalize()}.")
+            else:
+                lines.append(f"{_count_word(count)} {_pluralize(name)}.")
 
     if items:
-        lines.append("")
         for item in items:
             lines.append(f"{item.name}.")
+        lines.append("\n")
 
-    lines.append("")
     if exits:
-        exit_parts = []
-        for ex in exits:
-            direction = ex["direction"].lower()
-            if ex["is_locked"]:
-                exit_parts.append(f"{direction} (locked)")
-            else:
-                exit_parts.append(direction)
-        lines.append('\n')
-        lines.append("Exits: " + " ".join(exit_parts))
+        exit_names = [ex["direction"].lower() for ex in exits]
+        if len(exit_names) == 1:
+            exit_str = exit_names[0]
+        elif len(exit_names) == 2:
+            exit_str = f"{exit_names[0]} and {exit_names[1]}"
+        else:
+            exit_str = ", ".join(exit_names[:-1]) + f" and {exit_names[-1]}"
+        lines.append(f"   Obvious exits: {exit_str}.")
     else:
-        lines.append("There are no obvious exits.")
+        lines.append("   There are no obvious exits.")
 
-    lines.append("")
-    return "\n".join(lines)              # CHANGED: return instead of print
-
+    return "\n".join(lines)
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -190,3 +197,13 @@ def _emit_look_event(conn, character, room, target_name: str):
         location_id=room.id,
         sender_id=character.id,
     )
+    
+def _count_word(n: int) -> str:
+    words = {2: "Two", 3: "Three", 4: "Four", 5: "Five",
+             6: "Six", 7: "Seven", 8: "Eight", 9: "Nine", 10: "Ten"}
+    return words.get(n, str(n))
+
+
+def _pluralize(name: str) -> str:
+    lower = name.lower()
+    return IRREGULAR_PLURALS.get(lower, lower + "s")

@@ -44,6 +44,7 @@ def emit_event(
 
     color: str = "white",
     use_border: bool = False,
+    style: str = "plain_centered",
 ) -> None:
     """
     Create a new event row.
@@ -54,9 +55,13 @@ def emit_event(
         channel
         global
         system
+
+    style controls the visual presentation of global events:
+        plain_centered | divider | corner_accent | box_single | box_double
     """
     if event_type == "room" and sender_id is None:
         raise ValueError("Room events must have sender_id")
+
     with conn.cursor() as cur:
         cur.execute(
             """
@@ -69,9 +74,10 @@ def emit_event(
                 channel,
                 message,
                 color,
-                use_border
+                use_border,
+                style
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
             (
                 event_type,
@@ -82,6 +88,7 @@ def emit_event(
                 message,
                 color,
                 use_border,
+                style,
             ),
         )
     conn.commit()
@@ -116,6 +123,7 @@ def get_visible_events(
                 message,
                 color,
                 use_border,
+                style,
                 created_at
             FROM broadcast_messages
             WHERE id > %s
@@ -158,7 +166,7 @@ def should_deliver(character, event: Event) -> bool:
             return False
         if event.location_id != character.location_id:
             return False
-        # ADDED: skip events from before the player entered this room
+        # Skip events from before the player entered this room
         if (
             character.room_entered_at
             and event.created_at
@@ -171,7 +179,6 @@ def should_deliver(character, event: Event) -> bool:
     # Tell events (private messaging)
     # -------------------------------------------------------
     if event.event_type == "tell":
-        # ONLY deliver if you're the recipient
         return event.recipient_character_id == character.id
 
     # -------------------------------------------------------
@@ -182,9 +189,8 @@ def should_deliver(character, event: Event) -> bool:
 
     # -------------------------------------------------------
     # System messages
-    # -------------------------------------------------------    
+    # -------------------------------------------------------
     if event.event_type == "system":
         return event.sender_id == character.id
 
-    
     return False

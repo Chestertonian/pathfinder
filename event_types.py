@@ -16,5 +16,6 @@ class Event:
 
     message: str
     color: str
+    style: str
     use_border: bool
     created_at: Optional[datetime] = None  # ADDED

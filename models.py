@@ -121,9 +121,12 @@ class Character:
         self.name          = row["name"]
         self.char_class    = row["class"]
         self.level         = row["level"]
+        self.race          = row["race"]
+        self.background    = row["background"]
         self.xp            = row["xp"]
         self.location_id   = row["location_id"]
         self.is_staff      = row["is_staff"]
+        self.room_entered_at = row.get("room_entered_at")
 
         # Resources
         self.hp            = row["hp"]
@@ -153,7 +156,7 @@ class Character:
                 SELECT id, name, class, level, xp, location_id, is_staff,
                        hp, hp_max, power, power_max, endurance, endurance_max, gold,
                        strength, dexterity, constitution, intelligence, wisdom, charisma,
-                       room_entered_at
+                       room_entered_at, background, race
                 FROM characters
                 WHERE id = %s
                 """,
@@ -184,6 +187,8 @@ class Character:
                 "wisdom":         row[18],
                 "charisma":       row[19],
                 "room_entered_at": row[20],  
+                "background":     row[21],
+                "race":           row[22],
             })
 
     def get_room(self, conn) -> "Room | None":

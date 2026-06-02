@@ -32,6 +32,29 @@ RACIAL_BONUSES = {
                 "intelligence": -1, "charisma": -1},
 }
 
+BACKGROUNDS = [
+    "Acolyte", "Aristocrat", "Criminal", "Laborer", "Farmer",
+    "Hunter", "Brawler", "Sailor", "Wanderer", "Hermit",
+    "Scholar", "Entertainer", "Outlander", "Merchant"
+]
+
+BACKGROUND_DESCRIPTIONS = {
+    "Acolyte":    "Raised in service to a temple or shrine.",
+    "Aristocrat": "Born to wealth and privilege.",
+    "Criminal":   "Lived outside the law, by necessity or choice.",
+    "Laborer":    "Hard physical work defined your early years.",
+    "Farmer":     "Tended the land and lived by its rhythms.",
+    "Hunter":     "Tracked and hunted to survive.",
+    "Brawler":    "Settled disputes with your fists.",
+    "Sailor":     "The sea was your home.",
+    "Wanderer":   "Never stayed anywhere long enough to call it home.",
+    "Hermit":     "Sought solitude and found wisdom in it.",
+    "Scholar":    "Books and knowledge were your world.",
+    "Entertainer":"Lived by your wit and performance.",
+    "Outlander":  "Came from somewhere far and strange.",
+    "Merchant":   "Traded, bartered, and haggled your way through life.",
+}
+
 STAT_NAMES = ["strength", "dexterity", "constitution",
               "intelligence", "wisdom", "charisma"]
 STAT_ABBR  = ["STR", "DEX", "CON", "INT", "WIS", "CHA"]
@@ -99,26 +122,32 @@ def name_exists(name: str) -> bool:
             )
             return cur.fetchone() is not None
 
-def insert_character(name, password_hash, gender, race,
-                     char_class, stats, resources) -> int:
+def insert_character(
+    name, password_hash, gender, race,
+    background, stats, resources       # CHANGED: background replaces char_class
+) -> int:
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 """
                 INSERT INTO characters (
-                    name, password_hash, gender, class, race, location_id,
-                    strength, dexterity, constitution, intelligence, wisdom, charisma,
+                    name, password_hash, gender, race, location_id,
+                    background,
+                    strength, dexterity, constitution,
+                    intelligence, wisdom, charisma,
                     hp, hp_max, power, power_max, endurance, endurance_max
                 ) VALUES (
-                    %s, %s, %s, %s, %s, %s,
+                    %s, %s, %s, %s, %s,
+                    %s,
                     %s, %s, %s, %s, %s, %s,
                     %s, %s, %s, %s, %s, %s
                 )
                 RETURNING id
                 """,
                 (
-                    name, password_hash, gender, char_class, race.lower(),
+                    name, password_hash, gender, race.lower(),
                     STARTING_LOCATION_ID,
+                    background.lower(),
                     stats["strength"], stats["dexterity"], stats["constitution"],
                     stats["intelligence"], stats["wisdom"], stats["charisma"],
                     resources["hp"], resources["hp"],
@@ -129,14 +158,15 @@ def insert_character(name, password_hash, gender, race,
             character_id = cur.fetchone()[0]
             cur.execute(
                 """
-                INSERT INTO audit_log (character_id, action, entity_type, entity_id, details)
+                INSERT INTO audit_log
+                    (character_id, action, entity_type, entity_id, details)
                 VALUES (%s, 'character_created', 'character', %s, %s)
                 """,
-                (character_id, character_id, f'{{"race": "{race}"}}'),
+                (character_id, character_id,
+                 f'{{"race": "{race}", "background": "{background}"}}'),
             )
         conn.commit()
     return character_id
-
 
 # ---------------------------------------------------------------------------
 # Display helpers — NOW RETURN STRINGS instead of printing
@@ -158,6 +188,13 @@ def display_stat_block(
             lines.append(f"  {abbr:<4} {value:>2}")
     return "\n".join(lines) + "\n"
 
+
+def display_backgrounds() -> str:
+    lines = []
+    for i, bg in enumerate(BACKGROUNDS, 1):
+        desc = BACKGROUND_DESCRIPTIONS.get(bg, "")
+        lines.append(f"  [{i}] {bg:<12}  {desc}")
+    return "\n".join(lines) + "\n"
 
 def display_races() -> str:
     # CHANGED: returns plain string
@@ -229,100 +266,86 @@ def prompt_password(session) -> str:
 # ---------------------------------------------------------------------------
 
 def run_character_creation(session) -> int | None:
-    """
-    Run the full character creation sequence.
-    Returns the new character_id on success, or None if the player quits.
-    """
-    session.send("\n=== CHARACTER CREATION ===\n\n")  # CHANGED: was rule()
+    session.send("\n=== CHARACTER CREATION ===\n\n")
 
-    # --- Step 1: Name ---
+    # Step 1: Name
     while True:
         name = prompt_text(session, "Enter your character's name:",
                            min_len=2, max_len=20)
         name = name.capitalize()
-
         if not name.isalpha():
             session.send("Names may only contain letters.\n")
             continue
-
         if name_exists(name):
             session.send(f"A character named '{name}' already exists.\n")
-            session.send("(If this is your character, return to the main menu to log in.)\n\n")
             continue
-
         break
 
-    # --- Step 2: Gender ---
+    # Step 2: Gender
     session.send(f"\nHello, {name}. Choose your gender:\n\n")
     session.send("  [1] Male\n  [2] Female\n\n")
     gender_idx = prompt_choice(session, ">", [GENDER_MALE, GENDER_FEMALE])
     gender = [GENDER_MALE, GENDER_FEMALE][gender_idx]
 
-    # --- Step 3: Race ---
+    # Step 3: Race
     session.send("\nChoose your race:\n\n")
-    session.send(display_races())              # CHANGED: send the returned string
+    session.send(display_races())
     races = list(RACIAL_BONUSES.keys())
     race_idx = prompt_choice(session, ">", races)
     race = races[race_idx]
     session.send(f"\nYou have chosen: {race}.\n")
 
-    # --- Step 4: Stat rolling ---
+    # Step 4: Stats
     session.send("\nRolling your stats (4d6, drop lowest)...\n")
-
     while True:
         raw_stats = roll_all_stats()
         final_stats = apply_racial_bonuses(raw_stats, race)
         bonuses = RACIAL_BONUSES[race]
-
         session.send(f"\nBase rolls with {race} racial bonuses applied:\n")
-        session.send(display_stat_block(final_stats, bonuses))  # CHANGED: send string
-
+        session.send(display_stat_block(final_stats, bonuses))
         total = sum(final_stats.values())
         session.send(f"\n  Stat total: {total}\n\n")
         session.send("  [1] Accept these stats\n  [2] Reroll\n\n")
-
         choice = prompt_choice(session, ">", ["accept", "reroll"])
         if choice == 0:
             break
 
-    # --- Step 5: Class ---
-    session.send("\nChoose your class:\n\n")
-    session.send(display_classes())            # CHANGED: send string
-    class_idx = prompt_choice(session, ">", CLASSES)
-    char_class = CLASSES[class_idx]
-    session.send(f"\nYou have chosen: {char_class}.\n")
+    # Step 5: Background          CHANGED: was class
+    session.send("\nChoose your background:\n\n")
+    session.send(display_backgrounds())
+    bg_idx = prompt_choice(session, ">", BACKGROUNDS)
+    background = BACKGROUNDS[bg_idx]
+    session.send(f"\nYou have chosen: {background}.\n")
 
-    # --- Step 6: Password ---
+    # Step 6: Password
     session.send("\nSet your login password.\n\n")
     password = prompt_password(session)
     password_hash = hash_password(password)
 
-    # --- Step 7: Summary and confirm ---
+    # Step 7: Summary
     resources = calculate_starting_resources(final_stats)
-
     session.send("\n=== SUMMARY ===\n\n")
-    session.send(f"  Name    {name}\n")
-    session.send(f"  Gender  {'Male' if gender == GENDER_MALE else 'Female'}\n")
-    session.send(f"  Race    {race}\n")
-    session.send(f"  Class   {char_class}\n\n")
-    session.send(f"  HP        {resources['hp']}\n")
-    session.send(f"  Power     {resources['power']}\n")
-    session.send(f"  Endurance {resources['endurance']}\n")
+    session.send(f"  Name        {name}\n")
+    session.send(f"  Gender      {'Male' if gender == GENDER_MALE else 'Female'}\n")
+    session.send(f"  Race        {race}\n")
+    session.send(f"  Background  {background}\n\n")  # CHANGED: was class
+    session.send(f"  HP          {resources['hp']}\n")
+    session.send(f"  Power       {resources['power']}\n")
+    session.send(f"  Endurance   {resources['endurance']}\n")
     session.send(display_stat_block(final_stats))
     session.send("\n  [1] Create this character\n  [2] Start over\n\n")
 
     confirm = prompt_choice(session, ">", ["confirm", "restart"])
-
     if confirm == 1:
         session.send("Starting over...\n\n")
-        return run_character_creation(session)  # recursive restart, session passes through
+        return run_character_creation(session)
 
     character_id = insert_character(
         name=name,
         password_hash=password_hash,
         gender=gender,
         race=race,
-        char_class=char_class,
+        background=background,         
         stats=final_stats,
         resources=resources,
     )

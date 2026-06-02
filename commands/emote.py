@@ -1,6 +1,4 @@
 from events import emit_event
-from output import console
-
 
 class EmoteCommand:
     def execute(self, character, conn, args, session):

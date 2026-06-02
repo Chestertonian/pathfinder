@@ -5,8 +5,7 @@
 #
 
 from models import Character
-from commands.proclaim import render_proclaim
-
+from commands.proclaim import render_proclaim, to_ansi
 
 
 def render_event(conn, event):
@@ -28,21 +27,22 @@ def render_event(conn, event):
             sender_name = sender.name.capitalize()
 
     if event.event_type == "global":
-        use_border = getattr(event, "use_border", False)
+        style = getattr(event, "style", "plain_centered")
         color = getattr(event, "color", "white")
-        return render_proclaim(event.message, color, use_border)
+        print(f"[render] style={style!r} color={color!r}")
+        return render_proclaim(event.message, color, style)
 
     if event.event_type == "room":
-        return event.message
+        return event.message + "\n"
 
     if event.event_type == "tell":
-        return f"(tell) {event.message}"          # CHANGED: stripped [cyan] tags
+        return to_ansi(f"[cyan](tell) {event.message}[/cyan]\n")
 
     if event.event_type == "channel":
         channel = (event.channel or "chat").capitalize()
-        return f"{sender_name} <{channel}> {event.message}"  # CHANGED: stripped tags
-    
+        return to_ansi(f"[yellow]{sender_name} <{channel}> {event.message}[/yellow]\n")
+
     if event.event_type == "combat":
-        return event.message
-    
-    return event.message
+        return (f"{event.message}\n")
+
+    return event.message + "\n"

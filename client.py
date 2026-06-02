@@ -26,13 +26,17 @@ def receive_loop(sock: socket.socket) -> None:
                 print("\n[Disconnected from server.]")
                 sys.exit(0)
 
-            wrapped = textwrap.fill(line.rstrip(), width=90)
-            if wrapped:
-                # Clear current line, print received text, reprint prompt
-                sys.stdout.write(f"\r{' ' * 60}\r")
+            stripped = line.rstrip()
+            sys.stdout.write(f"\r{' ' * 60}\r")
+
+            if stripped:
+                wrapped = textwrap.fill(stripped, width=90)
                 sys.stdout.write(wrapped + "\n")
-                print_prompt()
-                sys.stdout.flush()
+            else:
+                sys.stdout.write("\n")          # blank line passes through
+
+            print_prompt()
+            sys.stdout.flush()
 
     except OSError:
         print("\n[Connection lost.]")

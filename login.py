@@ -65,13 +65,26 @@ def run_login(session) -> int | None:        # CHANGED: accepts session
                         (character["id"],)
                     )
                     conn.commit()
+                    message = f"{name} enters the realm."
+                    border = "-----------------------------"
+                    
+                    total_width = 90                                    # match your textwrap width
+                    border_pad = " " * ((total_width - len(border)) // 2)
+                    message_pad = " " * ((total_width - len(message)) // 2)
 
+                    lines = [
+                        "\n",
+                        border_pad + border,
+                        message_pad + message,
+                        border_pad + border,
+                        "\n",
+                    ]
+                    emitted = "\n".join(lines)
                     emit_event(
                         conn,
                         event_type="global",
                         sender_id=character["id"],
-                        message=f"<< {character['name'].capitalize()} enters the world. >>",
-                        # CHANGED: stripped Rich tags from message — plain text now
+                        message=emitted,
                     )
 
                     return character["id"]

@@ -18,6 +18,7 @@ and passed through. No command should open its own connection.
 from db import get_connection
 from models import BroadcastMessage, Character
 from broadcast import BroadcastPoller
+from commands.power import PowerCommand
 from events import emit_event
 from commands.kick import register_session, unregister_session
 
@@ -30,11 +31,13 @@ from commands.hp import HpCommand
 from commands.time import TimeCommand
 from commands.who import WhoCommand
 from commands.finger import FingerCommand
+from commands.level import LevelCommand
 
 from commands.say import SayCommand
 from commands.emote import EmoteCommand
 from commands.tell import TellCommand
 from commands.chat import ChatCommand
+from commands.history import HistoryCommand
 
 from combat.attack import AttackCommand
 from combat.flee import FleeCommand
@@ -98,6 +101,7 @@ COMMANDS = {
     "emote":     EmoteCommand(),
     "tell":      TellCommand(),
     "chat":      ChatCommand(),
+    "history":   HistoryCommand(),
 
     "world":     WorldCommand(),
 
@@ -115,9 +119,20 @@ COMMANDS = {
     "listen":    ListenCommand(),
     "time":      TimeCommand(),
     "finger":    FingerCommand(),
+    "level":     LevelCommand(),
 
     "attack":    AttackCommand(),
     "flee":      FleeCommand(),
+    
+    "salute":    PowerCommand("salute"),
+    "magelight": PowerCommand("magelight"),
+    "prayer":    PowerCommand("prayer"),
+    "flourish":  PowerCommand("flourish"),
+    "slip":      PowerCommand("slip"),
+    "whittle":   PowerCommand("whittle"),
+    "maketorch": PowerCommand("maketorch"),
+    "headbutt":  PowerCommand("headbutt"),
+    "trample":   PowerCommand("trample"),
 }
 
 

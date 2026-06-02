@@ -166,7 +166,6 @@ class CombatScheduler:
             color="red3",
             use_border=False,
         )
-        
 
         # --- Ability hook (placeholder) ---
         # When abilities are implemented, import and call here:
@@ -199,19 +198,24 @@ class CombatScheduler:
         )
 
         if dead_type == "character":
-            self._handle_player_death(conn, dead_id, location_id)
+            killer = _load_combatant(conn, killer_type, killer_id)
+            killer_name = killer["name"] if killer else "Something"
+            self._handle_player_death(conn, dead_id, location_id, killer_name)
         else:
             self._handle_npc_death(conn, dead_id, location_id)
-            
+
             if killer_type == "character":
                 self._award_xp(conn, killer_id, dead_id, location_id)
-
 
         # Remove ALL combat rows involving this entity
         _delete_combats_for(conn, dead_type, dead_id)
 
-    def _handle_player_death(self, conn, character_id, location_id):
+    def _handle_player_death(self, conn, character_id, location_id, killer_name: str):
         with conn.cursor() as cur:
+            cur.execute("SELECT name FROM characters WHERE id = %s", (character_id,))
+            row = cur.fetchone()
+            victim_name = row[0] if row else "Someone"
+
             # Drop all items at death location
             cur.execute(
                 """
@@ -251,9 +255,9 @@ class CombatScheduler:
             conn,
             event_type="global",
             sender_id=character_id,
-            message=f"Someone died!",
-            color="bold red3",
-            use_border=True,
+            message=_render_death_announcement(killer_name, victim_name),
+            color="red3",
+            use_border=False,
         )
 
     def _handle_npc_death(self, conn, npc_id, location_id):
@@ -279,6 +283,7 @@ class CombatScheduler:
                 """,
                 (location_id, npc_id),
             )
+
     def _award_xp(self, conn, character_id: int, npc_id: int, location_id: int):
         """Award XP to a character for killing an NPC. Level up if threshold met."""
 
@@ -301,7 +306,6 @@ class CombatScheduler:
         xp_reward = row[0]
 
         with conn.cursor() as cur:
-            # Fetch current xp and level
             cur.execute(
                 "SELECT xp, level FROM characters WHERE id = %s",
                 (character_id,),
@@ -336,16 +340,38 @@ class CombatScheduler:
 
         # Notify player of level up
         if new_level > current_level:
-                # Apply stat gains for each level gained
-                for _ in range(new_level - current_level):
-                    _apply_level_up_gains(conn, character_id)
+            # Apply stat gains for each level gained
+            for _ in range(new_level - current_level):
+                _apply_level_up_gains(conn, character_id)
 
-                emit_event(
-                    conn,
-                    event_type="system",
-                    sender_id=character_id,
-                    message=f"You have reached level {new_level}!",
-                )
+            emit_event(
+                conn,
+                event_type="system",
+                sender_id=character_id,
+                message=f"You have reached level {new_level}!",
+            )
+
+
+# ------------------------------------------------------------------
+# Render helpers
+# ------------------------------------------------------------------
+
+def _render_death_announcement(killer_name: str, victim_name: str) -> str:
+    message = f"{killer_name} kills {victim_name}, leaving the corpse to rot!"
+    border = "* * * * * * * * * * * * * * *"
+
+    total_width = 90
+    border_pad = " " * ((total_width - len(border)) // 2)
+    message_pad = " " * ((total_width - len(message)) // 2)
+
+    lines = [
+        "\n",
+        border_pad + border,
+        f"{message_pad}\033[91m{message}\033[0m",
+        border_pad + border,
+        "\n",
+    ]
+    return "\n".join(lines)
 
 
 # ------------------------------------------------------------------
@@ -445,7 +471,8 @@ def _delete_combats_for(conn, entity_type: str, entity_id: int):
             """,
             (entity_type, entity_id, entity_type, entity_id),
         )
-        
+
+
 def _xp_required(level: int) -> int:
     """
     XP needed to level up from this level.
@@ -491,8 +518,8 @@ def _apply_level_up_gains(conn, character_id: int) -> None:
     def mod(stat):
         return (stat - 10) // 2
 
-    hp_gain = max(1, 8 + mod(con) + (mod(str_)/2))
-    sp_gain = max(1, 4 + mod(int_) + (mod(wis)/2))
+    hp_gain = max(1, 8 + mod(con) + (mod(str_) / 2))
+    sp_gain = max(1, 4 + mod(int_) + (mod(wis) / 2))
     ep_gain = 10
 
     with conn.cursor() as cur:

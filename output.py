@@ -16,6 +16,7 @@ Install Rich first:
 
 from rich.console import Console
 from rich.rule import Rule
+from io import StringIO
 
 # ---------------------------------------------------------------------------
 # Console
@@ -30,7 +31,7 @@ console = Console(highlight=False, width=90)
 # Color palette
 # ---------------------------------------------------------------------------
 # Kept minimal. Most game text is plain white.
-# Color is reserved for things that genuinely need to stand out.
+# Color is reserved for things that need to stand out.
 # ---------------------------------------------------------------------------
 
 COLOR_TITLE   = "bold white"   # Section headers, room names, menu options
@@ -45,6 +46,12 @@ COLOR_FLAVOR  = "white"        # Room descriptions, narrative text
 # ---------------------------------------------------------------------------
 # Core print helpers
 # ---------------------------------------------------------------------------
+
+def to_ansi(markup: str) -> str:
+    buf = StringIO()
+    c = Console(file=buf, highlight=False, force_terminal=True)
+    c.print(markup, end="")
+    return buf.getvalue()
 
 def print_title(text: str) -> None:
     """Bold section header — CHARACTER CREATION, LOGIN, etc."""
