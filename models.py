@@ -29,6 +29,7 @@ class Room:
         self.brightness    = row["brightness"]
         self.smell         = row["smell"]
         self.sound         = row["sound"]
+        self.script_key    = row.get("script_key")
 
     @staticmethod
     def get_by_id(conn, room_id: int) -> "Room | None":
@@ -37,7 +38,7 @@ class Room:
             cur.execute(
                 """
                 SELECT id, name, description, region, is_safe, is_settlement,
-                       is_outdoor, brightness, smell, sound
+                       is_outdoor, brightness, smell, sound, script_key
                 FROM locations
                 WHERE id = %s
                 """,
@@ -57,6 +58,7 @@ class Room:
                 "brightness":    row[7],
                 "smell":         row[8],
                 "sound":         row[9],
+                "script_key":    row[10],
             })
 
     def get_exits(self, conn) -> list[dict]:
@@ -64,7 +66,7 @@ class Room:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT direction, is_locked, description, cost
+                SELECT direction, is_locked, description, cost, required_class, required_unguilded
                 FROM exits
                 WHERE from_location = %s AND is_secret = FALSE
                 ORDER BY direction
@@ -77,6 +79,8 @@ class Room:
                     "is_locked":   row[1],
                     "description": row[2],
                     "cost":        row[3],
+                    "required_class": row[4],
+                    "required_unguilded": row[5],
                 }
                 for row in cur.fetchall()
             ]
@@ -627,3 +631,66 @@ class BroadcastMessage:
         with conn.cursor() as cur:
             cur.execute("SELECT COALESCE(MAX(id), 0) FROM broadcast_messages")
             return cur.fetchone()[0]
+        
+class BulletinBoard:
+
+    @staticmethod
+    def get_board_in_room(conn, location_id):
+        """Find the bulletin board in a given room. Returns a row or None."""
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT id, name, description
+                FROM bulletin_boards
+                WHERE location_id = %s
+            """, (location_id,))
+            return cur.fetchone()
+
+    @staticmethod
+    def get_posts(conn, board_id):
+        """Return all posts on a board, oldest first."""
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT id, author_name, subject, created_at
+                FROM board_posts
+                WHERE board_id = %s
+                ORDER BY created_at ASC
+            """, (board_id,))
+            return cur.fetchall()
+
+    @staticmethod
+    def get_post_by_number(conn, board_id, post_number):
+        """
+        Fetch a single post by its display number (1, 2, 3...).
+        We use ROW_NUMBER() to assign display numbers, then filter.
+        """
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT id, author_id, author_name, subject, body, created_at
+                FROM (
+                    SELECT *,
+                        ROW_NUMBER() OVER (ORDER BY created_at ASC) AS post_num
+                    FROM board_posts
+                    WHERE board_id = %s
+                ) numbered
+                WHERE post_num = %s
+            """, (board_id, post_number))
+            return cur.fetchone()
+
+    @staticmethod
+    def create_post(conn, board_id, author_id, author_name, subject, body):
+        """Insert a new post onto the board."""
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO board_posts (board_id, author_id, author_name, subject, body)
+                VALUES (%s, %s, %s, %s, %s)
+            """, (board_id, author_id, author_name, subject, body))
+        conn.commit()
+
+    @staticmethod
+    def delete_post(conn, post_id):
+        """Delete a post by its real database id."""
+        with conn.cursor() as cur:
+            cur.execute("""
+                DELETE FROM board_posts WHERE id = %s
+            """, (post_id,))
+        conn.commit()

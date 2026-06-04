@@ -124,7 +124,8 @@ def name_exists(name: str) -> bool:
 
 def insert_character(
     name, password_hash, gender, race,
-    background, stats, resources       # CHANGED: background replaces char_class
+    background, char_class,
+    stats, resources,
 ) -> int:
     with get_connection() as conn:
         with conn.cursor() as cur:
@@ -132,40 +133,58 @@ def insert_character(
                 """
                 INSERT INTO characters (
                     name, password_hash, gender, race, location_id,
-                    background,
+                    background, class,
                     strength, dexterity, constitution,
                     intelligence, wisdom, charisma,
                     hp, hp_max, power, power_max, endurance, endurance_max
                 ) VALUES (
                     %s, %s, %s, %s, %s,
-                    %s,
+                    %s, %s,
                     %s, %s, %s, %s, %s, %s,
                     %s, %s, %s, %s, %s, %s
                 )
                 RETURNING id
                 """,
                 (
-                    name, password_hash, gender, race.lower(),
+                    name,
+                    password_hash,
+                    gender,
+                    race.lower(),
                     STARTING_LOCATION_ID,
                     background.lower(),
-                    stats["strength"], stats["dexterity"], stats["constitution"],
-                    stats["intelligence"], stats["wisdom"], stats["charisma"],
-                    resources["hp"], resources["hp"],
-                    resources["power"], resources["power"],
-                    resources["endurance"], resources["endurance"],
+                    char_class.lower(),
+                    stats["strength"],
+                    stats["dexterity"],
+                    stats["constitution"],
+                    stats["intelligence"],
+                    stats["wisdom"],
+                    stats["charisma"],
+                    resources["hp"],
+                    resources["hp"],
+                    resources["power"],
+                    resources["power"],
+                    resources["endurance"],
+                    resources["endurance"],
                 ),
             )
+
             character_id = cur.fetchone()[0]
+
             cur.execute(
                 """
                 INSERT INTO audit_log
                     (character_id, action, entity_type, entity_id, details)
                 VALUES (%s, 'character_created', 'character', %s, %s)
                 """,
-                (character_id, character_id,
-                 f'{{"race": "{race}", "background": "{background}"}}'),
+                (
+                    character_id,
+                    character_id,
+                    f'{{"race": "{race}", "background": "{background}", "char_class": "{char_class}"}}',
+                ),
             )
+
         conn.commit()
+
     return character_id
 
 # ---------------------------------------------------------------------------
@@ -348,6 +367,7 @@ def run_character_creation(session) -> int | None:
         background=background,         
         stats=final_stats,
         resources=resources,
+        char_class='Immigrant',
     )
 
     session.send(f"\n{name} steps into the world. Good luck.\n\n")

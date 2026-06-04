@@ -16,8 +16,9 @@ and passed through. No command should open its own connection.
 """
 
 from db import get_connection
-from models import BroadcastMessage, Character
+from models import BroadcastMessage, Character, Room
 from broadcast import BroadcastPoller
+import room_scripts
 from commands.power import PowerCommand
 from events import emit_event
 from commands.kick import register_session, unregister_session
@@ -56,11 +57,12 @@ from commands.setstat import SetstatCommand
 
 from commands.items import GetCommand, DropCommand, InventoryCommand
 
-# CHANGED: removed all output.py imports — output now goes through session
+from commands.bulletinboard import WriteCommand, SubjectsCommand, ReadCommand, EraseCommand
+
 
 
 # ---------------------------------------------------------------------------
-# Direction aliases — UNCHANGED
+# Direction aliases
 # ---------------------------------------------------------------------------
 
 _DIRS = {
@@ -133,6 +135,11 @@ COMMANDS = {
     "maketorch": PowerCommand("maketorch"),
     "headbutt":  PowerCommand("headbutt"),
     "trample":   PowerCommand("trample"),
+    
+    "subjects":  SubjectsCommand(),
+    "write":     WriteCommand(),
+    "erase":     EraseCommand(),
+    "read":      ReadCommand(),
 }
 
 
@@ -226,6 +233,7 @@ def run_game_loop_for_client(character_id: int, session) -> None:
                 continue
 
             verb, args = _parse(raw)
+            
 
             # -----------------------------------------------------------
             # Quit
@@ -269,7 +277,7 @@ def run_game_loop_for_client(character_id: int, session) -> None:
                 # -------------------------------------------------------
 
                 if exit_data is not None:
-                    
+
                     if character.endurance <= 0:
                         session.send("You are too exhausted to move.\n")
                         continue
@@ -278,12 +286,28 @@ def run_game_loop_for_client(character_id: int, session) -> None:
                         session.send("That way is locked.\n")
                         continue
 
+                    # --- Access check ---
+                    required_class = exit_data.get("required_class")
+                    required_unguilded = exit_data.get("required_unguilded", False)
+
+                    if required_class or required_unguilded:
+                        is_unguilded = character.char_class is None or character.char_class == "Immigrant"
+
+                        passed = False
+                        if required_unguilded and is_unguilded:
+                            passed = True
+                        if required_class and character.char_class == required_class:
+                            passed = True
+
+                        if not passed:
+                            session.send("A guild warden blocks your path. Members only.\n")
+                            continue
+
                     old_room = room.id
                     new_room = exit_data["to_location"]
 
                     character.move_to(conn, new_room)
 
-                    # ADDED: record when player entered the new room
                     with conn.cursor() as cur:
                         cur.execute(
                             "UPDATE characters SET room_entered_at = NOW() WHERE id = %s",
@@ -299,13 +323,23 @@ def run_game_loop_for_client(character_id: int, session) -> None:
                             (exit_data["cost"], character.id),
                         )
 
-                    # Check if player is now out of EP
                     character = Character.get_by_id(conn, character_id)
                     if character.endurance <= 0:
                         session.send("You are exhausted and cannot move.\n")
 
                     character = Character.get_by_id(conn, character_id)
                     _run_command(COMMANDS["look"], character, conn, [], session)
+
+                    # --- Room script hook ---
+                    new_room_obj = Room.get_by_id(conn, new_room)
+                    print(f"[debug] new_room_obj.script_key = {new_room_obj.script_key}")
+                    script = room_scripts.get_script(new_room_obj.script_key)
+                    print(f"[debug] script = {script}")
+
+                    if new_room_obj is not None:
+                        script = room_scripts.get_script(new_room_obj.script_key)
+                        if script and hasattr(script, "on_enter"):
+                            script.on_enter(character, new_room_obj, conn, session)
 
                     emit_event(
                         conn,
@@ -324,6 +358,17 @@ def run_game_loop_for_client(character_id: int, session) -> None:
                     )
 
                     continue
+                
+                # -----------------------------------------------------------
+                # Room commands
+                # -----------------------------------------------------------
+            
+                # Before your normal command lookup
+                script = room_scripts.get_script(room.script_key)
+                if script and hasattr(script, "on_command"):
+                    consumed = script.on_command(character, room, verb, args, conn, session)
+                    if consumed:
+                        continue
                 # -------------------------------------------------------
                 # Registered commands
                 # -------------------------------------------------------

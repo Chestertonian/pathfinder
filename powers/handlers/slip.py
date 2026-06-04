@@ -16,9 +16,7 @@ from output import to_ansi
 
 
 def execute(character, target, args, conn, session) -> None:
-    session.send(f"DEBUG args: {args}\n")
-    # target is guaranteed by dispatcher (target_required=TRUE)
-    # but just in case:
+
     if target is None:
         session.send("Slip a note to whom?\n")
         return
@@ -27,20 +25,13 @@ def execute(character, target, args, conn, session) -> None:
         session.send("You can only slip notes to other players.\n")
         return
 
-    # Everything after the target name is the message
-    # We reconstruct it from the raw args via the target name
-    # Actually we need the message — see note below
-    if not hasattr(character, '_power_args') or not character._power_args:
-        session.send("Slip what message?\n")
-        return
+    # args[0] is the target name, everything after is the message
+    message = " ".join(args[1:]).strip()
 
-    # Strip the target name from args to get the message
-    message = character._power_raw_message
     if not message:
-        session.send("Slip what message?\n")
+        session.send("Usage: slip <name> <message>\n")
         return
 
-    # Deliver anonymously to target only
     emit_event(
         conn,
         event_type="tell",
@@ -52,9 +43,9 @@ def execute(character, target, args, conn, session) -> None:
         ),
     )
 
-    # Confirm to sender, no room event
     session.send(
         to_ansi(
-            f"[magenta]You slip a note to {target['name'].capitalize()}.[/magenta]\n"
+            f"[magenta]You slip a note to "
+            f"{target['name'].capitalize()}.[/magenta]\n"
         )
     )

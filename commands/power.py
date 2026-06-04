@@ -119,7 +119,7 @@ class PowerCommand:
         if handler is None:
             return f"No handler implemented for '{self.power_name}'."
 
-        handler.execute(character, target, conn, session)
+        handler.execute(character, target, args, conn, session)
 
         # --- 7. Deduct SP and set cooldown ---
         if power["sp_cost"] > 0:

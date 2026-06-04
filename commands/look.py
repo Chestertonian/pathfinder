@@ -81,6 +81,7 @@ def _describe_room(character, conn) -> str:
     items = room.get_items(conn)
     npcs = room.get_npcs(conn)
     players = _get_players_in_room(conn, room.id, exclude_id=character.id)
+    boards = _get_boards_in_room(conn, room.id)
 
     lines = []
 
@@ -91,6 +92,12 @@ def _describe_room(character, conn) -> str:
     lines.append(description)
     lines.append("\n")
 
+    if boards:
+            for board in boards:
+                post_word = "message" if board["post_count"] == 1 else "messages"
+                lines.append(f"{board['name']} ({board['post_count']} {post_word}).")
+            lines.append("\n")
+            
     if players:
         for player in players:
             lines.append(f"{player['name'].capitalize()}.")
@@ -207,3 +214,16 @@ def _count_word(n: int) -> str:
 def _pluralize(name: str) -> str:
     lower = name.lower()
     return IRREGULAR_PLURALS.get(lower, lower + "s")
+
+def _get_boards_in_room(conn, room_id: int) -> list[dict]:
+    """Returns all bulletin boards in the given room."""
+    with conn.cursor() as cur:
+        cur.execute("""
+            SELECT bb.id, bb.name, COUNT(bp.id) as post_count
+            FROM bulletin_boards bb
+            LEFT JOIN board_posts bp ON bp.board_id = bb.id
+            WHERE bb.location_id = %s
+            GROUP BY bb.id, bb.name
+        """, (room_id,))
+        rows = cur.fetchall()
+    return [{"id": row[0], "name": row[1], "post_count": row[2]} for row in rows]
