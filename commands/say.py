@@ -24,6 +24,6 @@ class SayCommand:
             location_id=character.location_id,
             message=f'{character.name} says, "{text}"',
         )
-        session.send(f"You say, \"{text}.\"\n")
+        session.send(f"You say, \"{text}\"\n")
 
         return None

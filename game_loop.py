@@ -37,7 +37,7 @@ from commands.level import LevelCommand
 from commands.say import SayCommand
 from commands.emote import EmoteCommand
 from commands.tell import TellCommand
-from commands.chat import ChatCommand
+from commands.channels import ChannelCommand
 from commands.history import HistoryCommand
 
 from combat.attack import AttackCommand
@@ -54,6 +54,7 @@ from commands.find import FindCommand
 from commands.goto import GotoCommand
 from commands.players import PlayersCommand
 from commands.setstat import SetstatCommand
+from commands.promote import PromoteCommand, DemoteCommand
 
 from commands.items import GetCommand, DropCommand, InventoryCommand
 
@@ -96,14 +97,25 @@ COMMANDS = {
     "find":      FindCommand(),
     "goto":      GotoCommand(),
     "setstat":   SetstatCommand(),
+    "promote":   PromoteCommand(),
+    "demote":    DemoteCommand(),
     "players":   PlayersCommand(),
 
     "say":       SayCommand(),
     ";":         EmoteCommand(),
     "emote":     EmoteCommand(),
     "tell":      TellCommand(),
-    "chat":      ChatCommand(),
     "history":   HistoryCommand(),
+    "chat":     ChannelCommand("chat"),
+    "merchant": ChannelCommand("merchant"),
+    "fighter":  ChannelCommand("fighter"),
+    "wizard":   ChannelCommand("wizard"),
+    "cleric":   ChannelCommand("cleric"),
+    "rogue":    ChannelCommand("rogue"),
+    "thief":    ChannelCommand("thief"),
+    "ranger":   ChannelCommand("ranger"),
+    "staff":    ChannelCommand("staff"),
+    "council": ChannelCommand("council"),
 
     "world":     WorldCommand(),
 

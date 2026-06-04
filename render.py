@@ -40,7 +40,8 @@ def render_event(conn, event):
 
     if event.event_type == "channel":
         channel = (event.channel or "chat").capitalize()
-        return to_ansi(f"[yellow]{sender_name} <{channel}> {event.message}[/yellow]\n")
+        color = event.color or "cyan"
+        return to_ansi(f"[{color}]{sender_name} <{channel}> {event.message}[/{color}]")
 
     if event.event_type == "combat":
         return (f"{event.message}\n")

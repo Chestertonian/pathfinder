@@ -131,6 +131,9 @@ class Character:
         self.location_id   = row["location_id"]
         self.is_staff      = row["is_staff"]
         self.room_entered_at = row.get("room_entered_at")
+        self.title_id = row["title_id"]
+        self.title_name  = row.get("title_name")   
+        self.title_guild = row.get("title_guild")  
 
         # Resources
         self.hp            = row["hp"]
@@ -157,12 +160,14 @@ class Character:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT id, name, class, level, xp, location_id, is_staff,
-                       hp, hp_max, power, power_max, endurance, endurance_max, gold,
-                       strength, dexterity, constitution, intelligence, wisdom, charisma,
-                       room_entered_at, background, race
-                FROM characters
-                WHERE id = %s
+            SELECT c.id, c.name, c.class, c.level, c.xp, c.location_id, c.is_staff,
+                c.hp, c.hp_max, c.power, c.power_max, c.endurance, c.endurance_max, c.gold,
+                c.strength, c.dexterity, c.constitution, c.intelligence, c.wisdom, c.charisma,
+                c.room_entered_at, c.background, c.race, c.title_id,
+                t.name AS title_name, t.guild AS title_guild
+            FROM characters c
+            LEFT JOIN titles t ON t.id = c.title_id
+            WHERE c.id = %s
                 """,
                 (character_id,),
             )
@@ -193,6 +198,9 @@ class Character:
                 "room_entered_at": row[20],  
                 "background":     row[21],
                 "race":           row[22],
+                "title_id": row[23],
+                "title_name":  row[24],
+                "title_guild": row[25],
             })
 
     def get_room(self, conn) -> "Room | None":

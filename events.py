@@ -185,7 +185,20 @@ def should_deliver(character, event: Event) -> bool:
     # Channel chat
     # -------------------------------------------------------
     if event.event_type == "channel":
-        return True
+        from commands.channels import CHANNELS
+
+        # Open channels
+        if event.channel == "chat":
+            return True
+
+        # Unknown channel — don't deliver
+        entry = CHANNELS.get(event.channel or "")
+        if entry is None:
+            return False
+
+        # Check access using the same checker as sending
+        _, access_check, _ = entry
+        return access_check(character)
 
     # -------------------------------------------------------
     # System messages
