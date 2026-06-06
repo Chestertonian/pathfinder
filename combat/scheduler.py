@@ -212,9 +212,12 @@ class CombatScheduler:
 
     def _handle_player_death(self, conn, character_id, location_id, killer_name: str):
         with conn.cursor() as cur:
-            cur.execute("SELECT name FROM characters WHERE id = %s", (character_id,))
+            cur.execute(
+                "SELECT name FROM characters WHERE id = %s",
+                (character_id,)
+            )
             row = cur.fetchone()
-            victim_name = row[0] if row else "Someone"
+            victim_name = row[0].capitalize() if row else "Someone"
 
             # Drop all items at death location
             cur.execute(
@@ -224,42 +227,42 @@ class CombatScheduler:
                     owner_id   = %s,
                     equipped   = FALSE
                 WHERE owner_type = 'character'
-                  AND owner_id   = %s
+                AND owner_id   = %s
                 """,
                 (location_id, character_id),
             )
 
-            # Find nearest settlement to respawn at
-            cur.execute(
-                """
-                SELECT id FROM locations
-                WHERE is_settlement = TRUE
-                ORDER BY id ASC
-                LIMIT 1
-                """
-            )
-            row = cur.fetchone()
-            respawn_id = row[0] if row else 1
-
+            # Send to Plane of the Dead, hp=1
             cur.execute(
                 """
                 UPDATE characters
-                SET location_id = %s,
-                    hp = 1
+                SET location_id     = 246,
+                    hp              = 1,
+                    room_entered_at = NOW(),
+                    pending_look    = TRUE
                 WHERE id = %s
                 """,
-                (respawn_id, character_id),
+                (character_id,),
             )
 
+        # Personal death experience
+        emit_event(
+            conn,
+            event_type="system",
+            sender_id=character_id,
+            message=_render_personal_death(killer_name),
+        )
+
+        # Global announcement
         emit_event(
             conn,
             event_type="global",
             sender_id=character_id,
             message=_render_death_announcement(killer_name, victim_name),
-            color="red3",
+            color="red",
             use_border=False,
         )
-
+                
     def _handle_npc_death(self, conn, npc_id, location_id):
         with conn.cursor() as cur:
             cur.execute(
@@ -356,22 +359,35 @@ class CombatScheduler:
 # Render helpers
 # ------------------------------------------------------------------
 
-def _render_death_announcement(killer_name: str, victim_name: str) -> str:
-    message = f"{killer_name} kills {victim_name}, leaving the corpse to rot!"
-    border = "* * * * * * * * * * * * * * *"
 
-    total_width = 90
-    border_pad = " " * ((total_width - len(border)) // 2)
-    message_pad = " " * ((total_width - len(message)) // 2)
-
+def _render_personal_death(killer_name: str) -> str:
     lines = [
-        "\n",
-        border_pad + border,
-        f"{message_pad}\033[91m{message}\033[0m",
-        border_pad + border,
-        "\n",
+        "",
+        "  The world grows dim around you.",
+        "",
+        "  A cold silence falls.",
+        "",
+        f"  You have been slain by {killer_name}.",
+        "",
+        "  You find yourself in a strange, still place...",
+        "",
     ]
     return "\n".join(lines)
+
+
+def _render_death_announcement(killer_name: str, victim_name: str) -> str:
+    width = 50
+    border = "* " * (width // 2)
+    message = f"{victim_name} has fallen, slain by {killer_name}."
+    padded = message.center(width)
+
+    return "\n".join([
+        "",
+        border,
+        padded,
+        border,
+        "",
+    ])
 
 
 # ------------------------------------------------------------------

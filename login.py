@@ -65,7 +65,7 @@ def run_login(session) -> int | None:        # CHANGED: accepts session
                         (character["id"],)
                     )
                     conn.commit()
-                    message = f"{name} enters the realm."
+                    message = f"{name.capitalize()} enters the realm."
                     border = "-----------------------------"
                     
                     total_width = 90                                    # match your textwrap width

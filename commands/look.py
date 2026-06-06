@@ -108,9 +108,9 @@ def _describe_room(character, conn) -> str:
         counts = Counter(npc.name.lower() for npc in npcs)
         for name, count in counts.items():
             if count == 1:
-                lines.append(f"{name.capitalize()}.")
+                lines.append(f"{name.title()}.")
             else:
-                lines.append(f"{_count_word(count)} {_pluralize(name)}.")
+                lines.append(f"{_count_word(count)} {_pluralize(name).title()}.")
 
     if items:
         for item in items:

@@ -24,6 +24,7 @@ from db import get_connection
 from events import emit_event
 import powers.handlers.salute as salute_handler
 import powers.handlers.slip as slip_handler
+import powers.handlers.pray as pray_handler
 '''import powers.handlers.magelight as magelight_handler
 import powers.handlers.prayer as prayer_handler
 import powers.handlers.flourish as flourish_handler
@@ -44,6 +45,7 @@ import powers.handlers.trample as trample_handler'''
 POWER_HANDLERS = {
     "salute":    salute_handler,
     "slip":      slip_handler,
+    "pray":      pray_handler,
 }
 '''    "magelight": magelight_handler,
     "prayer":    prayer_handler,
@@ -75,8 +77,15 @@ class PowerCommand:
             return f"Unknown power '{self.power_name}'."
 
         # --- 2. Check access ---
-        if not _has_access(character, power):
-            return "You don't know how to do that."
+        # Location overrides bypass normal class/race/background checks
+        LOCATION_POWER_OVERRIDES = {
+            246: ["pray"],
+        }
+        allowed_in_location = LOCATION_POWER_OVERRIDES.get(character.location_id, [])
+        if self.power_name not in allowed_in_location:
+            if not _has_access(character, power):
+                return "You don't know how to do that."
+
 
         # --- 3. Check cooldown ---
         remaining = _cooldown_remaining(conn, character.id, self.power_name)

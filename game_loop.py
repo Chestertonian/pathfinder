@@ -35,8 +35,10 @@ from commands.finger import FingerCommand
 from commands.level import LevelCommand
 
 from commands.say import SayCommand
-from commands.emote import EmoteCommand
+from commands.emote import EmoteCommand as EmCommand
+from commands.emotes import EmoteCommand
 from commands.tell import TellCommand
+from commands.ask import AskCommand
 from commands.channels import ChannelCommand
 from commands.history import HistoryCommand
 
@@ -59,6 +61,8 @@ from commands.promote import PromoteCommand, DemoteCommand
 from commands.items import GetCommand, DropCommand, InventoryCommand
 
 from commands.bulletinboard import WriteCommand, SubjectsCommand, ReadCommand, EraseCommand
+
+
 
 
 
@@ -85,27 +89,28 @@ _DIRS = {
 # ---------------------------------------------------------------------------
 
 COMMANDS = {
-    "look":      LookCommand(),
-    "l":         LookCommand(),
+    "look":     LookCommand(),
+    "l":        LookCommand(),
 
-    "spawn":     SpawnCommand(),
+    "spawn":    SpawnCommand(),
     "spawnitem": SpawnItemCommand(),
-    "summon":    SummonCommand(),
-    "proclaim":  ProclaimCommand(),
-    "shutdown":  ShutdownCommand(),
-    "kick":      KickCommand(),
-    "find":      FindCommand(),
-    "goto":      GotoCommand(),
-    "setstat":   SetstatCommand(),
-    "promote":   PromoteCommand(),
-    "demote":    DemoteCommand(),
-    "players":   PlayersCommand(),
+    "summon":   SummonCommand(),
+    "proclaim": ProclaimCommand(),
+    "shutdown": ShutdownCommand(),
+    "kick":     KickCommand(),
+    "find":     FindCommand(),
+    "goto":     GotoCommand(),
+    "setstat":  SetstatCommand(),
+    "promote":  PromoteCommand(),
+    "demote":   DemoteCommand(),
+    "players":  PlayersCommand(),
 
-    "say":       SayCommand(),
-    ";":         EmoteCommand(),
-    "emote":     EmoteCommand(),
-    "tell":      TellCommand(),
-    "history":   HistoryCommand(),
+    "say":      SayCommand(),
+    ";":        EmCommand(),
+    "emote":    EmCommand(),
+    "tell":     TellCommand(),
+    "ask":      AskCommand(),
+    "history":  HistoryCommand(),
     "chat":     ChannelCommand("chat"),
     "merchant": ChannelCommand("merchant"),
     "fighter":  ChannelCommand("fighter"),
@@ -115,9 +120,36 @@ COMMANDS = {
     "thief":    ChannelCommand("thief"),
     "ranger":   ChannelCommand("ranger"),
     "staff":    ChannelCommand("staff"),
-    "council": ChannelCommand("council"),
+    "council":  ChannelCommand("council"),
+    "world":    ChannelCommand("world"),
+    
+    "smile":     EmoteCommand("smile"),
+    "nod":       EmoteCommand("nod"),
+    "bow":       EmoteCommand("bow"),
+    "wave":      EmoteCommand("wave"),
+    "laugh":     EmoteCommand("laugh"),
+    "chuckle":   EmoteCommand("chuckle"),
+    "snicker":   EmoteCommand("snicker"),
+    "giggle":    EmoteCommand("giggle"),
+    "sigh":      EmoteCommand("sigh"),
+    "shrug":     EmoteCommand("shrug"),
+    "frown":     EmoteCommand("frown"),
+    "glare":     EmoteCommand("glare"),
+    "wink":      EmoteCommand("wink"),
+    "smirk":     EmoteCommand("smirk"),
+    "cheer":     EmoteCommand("cheer"),
 
-    "world":     WorldCommand(),
+    "grin":      EmoteCommand("grin"),
+    "scowl":     EmoteCommand("scowl"),
+    "poke":      EmoteCommand("poke"),
+    "point":     EmoteCommand("point"),
+    "nod_slow":  EmoteCommand("nod_slow"),
+    "shake_head":EmoteCommand("shake_head"),
+
+    "clap":      EmoteCommand("clap"),
+    "crossarms": EmoteCommand("crossarms"),
+    "squint":    EmoteCommand("squint"),
+    "torex":     EmoteCommand("torex"),
 
     "exits":     ExitsCommand(),
 
@@ -152,6 +184,8 @@ COMMANDS = {
     "write":     WriteCommand(),
     "erase":     EraseCommand(),
     "read":      ReadCommand(),
+    
+    "pray": PowerCommand("pray"),
 }
 
 
@@ -245,7 +279,14 @@ def run_game_loop_for_client(character_id: int, session) -> None:
                 continue
 
             verb, args = _parse(raw)
-            
+            if character.pending_look:
+                _run_command(COMMANDS["look"], character, conn, [], session)
+                with conn.cursor() as cur:
+                    cur.execute(
+                        "UPDATE characters SET pending_look = FALSE WHERE id = %s",
+                        (character_id,)
+                    )
+                conn.commit()
 
             # -----------------------------------------------------------
             # Quit

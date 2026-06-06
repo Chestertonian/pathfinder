@@ -1,7 +1,7 @@
 from events import emit_event
 
 class NorthlandsCommand:
-    def execute(self, character, conn, args, session):
+    def execute(self, character, conn, args, sessgion):
         if not args:
             return "Say what?"
 

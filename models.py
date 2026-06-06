@@ -133,7 +133,8 @@ class Character:
         self.room_entered_at = row.get("room_entered_at")
         self.title_id = row["title_id"]
         self.title_name  = row.get("title_name")   
-        self.title_guild = row.get("title_guild")  
+        self.title_guild = row.get("title_guild")
+        self.pending_look = row["pending_look"]  
 
         # Resources
         self.hp            = row["hp"]
@@ -143,6 +144,7 @@ class Character:
         self.endurance     = row["endurance"]
         self.endurance_max = row["endurance_max"]
         self.gold          = row["gold"]
+        self.gender        = row["gender"]
 
         # Stats
         self.strength      = row["strength"]
@@ -164,7 +166,7 @@ class Character:
                 c.hp, c.hp_max, c.power, c.power_max, c.endurance, c.endurance_max, c.gold,
                 c.strength, c.dexterity, c.constitution, c.intelligence, c.wisdom, c.charisma,
                 c.room_entered_at, c.background, c.race, c.title_id,
-                t.name AS title_name, t.guild AS title_guild
+                t.name AS title_name, t.guild AS title_guild, c.pending_look, gender
             FROM characters c
             LEFT JOIN titles t ON t.id = c.title_id
             WHERE c.id = %s
@@ -201,6 +203,8 @@ class Character:
                 "title_id": row[23],
                 "title_name":  row[24],
                 "title_guild": row[25],
+                "pending_look": row[26], 
+                "gender": row[27],
             })
 
     def get_room(self, conn) -> "Room | None":
