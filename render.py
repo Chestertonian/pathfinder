@@ -41,7 +41,15 @@ def render_event(conn, event):
     if event.event_type == "channel":
         channel = (event.channel or "chat").capitalize()
         color = event.color or "cyan"
-        return to_ansi(f"[{color}]{sender_name} <{channel}> {event.message}[/{color}]")
+
+        # Emotes are prefixed with [ChannelName] and have no speaker tag
+        if event.message.startswith(f"<{channel}>"):
+            return to_ansi(f"[{color}]{event.message}[/{color}]")
+
+        # Normal speech
+        return to_ansi(
+            f"[{color}]{sender_name} <{channel}> {event.message}[/{color}]"
+        )
 
     if event.event_type == "combat":
         return (f"{event.message}\n")
