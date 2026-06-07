@@ -26,6 +26,7 @@ from commands.kick import register_session, unregister_session
 from commands.look import LookCommand
 from commands.smell import SmellCommand
 from commands.listen import ListenCommand
+from commands.search import SearchCommand
 from commands.exits import ExitsCommand
 from commands.score import ScoreCommand
 from commands.hp import HpCommand
@@ -63,9 +64,6 @@ from commands.items import GetCommand, DropCommand, InventoryCommand
 from commands.bulletinboard import WriteCommand, SubjectsCommand, ReadCommand, EraseCommand
 
 
-
-
-
 # ---------------------------------------------------------------------------
 # Direction aliases
 # ---------------------------------------------------------------------------
@@ -85,71 +83,69 @@ _DIRS = {
 
 
 # ---------------------------------------------------------------------------
-# Command registry — UNCHANGED
+# Command registry
 # ---------------------------------------------------------------------------
 
 COMMANDS = {
-    "look":     LookCommand(),
-    "l":        LookCommand(),
+    "look":      LookCommand(),
+    "l":         LookCommand(),
 
-    "spawn":    SpawnCommand(),
+    "spawn":     SpawnCommand(),
     "spawnitem": SpawnItemCommand(),
-    "summon":   SummonCommand(),
-    "proclaim": ProclaimCommand(),
-    "shutdown": ShutdownCommand(),
-    "kick":     KickCommand(),
-    "find":     FindCommand(),
-    "goto":     GotoCommand(),
-    "setstat":  SetstatCommand(),
-    "promote":  PromoteCommand(),
-    "demote":   DemoteCommand(),
-    "players":  PlayersCommand(),
+    "summon":    SummonCommand(),
+    "proclaim":  ProclaimCommand(),
+    "shutdown":  ShutdownCommand(),
+    "kick":      KickCommand(),
+    "find":      FindCommand(),
+    "goto":      GotoCommand(),
+    "setstat":   SetstatCommand(),
+    "promote":   PromoteCommand(),
+    "demote":    DemoteCommand(),
+    "players":   PlayersCommand(),
 
-    "say":      SayCommand(),
-    ";":        EmCommand(),
-    "emote":    EmCommand(),
-    "tell":     TellCommand(),
-    "ask":      AskCommand(),
-    "history":  HistoryCommand(),
-    "chat":     ChannelCommand("chat"),
-    "merchant": ChannelCommand("merchant"),
-    "fighter":  ChannelCommand("fighter"),
-    "wizard":   ChannelCommand("wizard"),
-    "cleric":   ChannelCommand("cleric"),
-    "rogue":    ChannelCommand("rogue"),
-    "thief":    ChannelCommand("thief"),
-    "ranger":   ChannelCommand("ranger"),
-    "staff":    ChannelCommand("staff"),
-    "council":  ChannelCommand("council"),
-    "world":    ChannelCommand("world"),
-    
-    "smile":     EmoteCommand("smile"),
-    "nod":       EmoteCommand("nod"),
-    "bow":       EmoteCommand("bow"),
-    "wave":      EmoteCommand("wave"),
-    "laugh":     EmoteCommand("laugh"),
-    "chuckle":   EmoteCommand("chuckle"),
-    "snicker":   EmoteCommand("snicker"),
-    "giggle":    EmoteCommand("giggle"),
-    "sigh":      EmoteCommand("sigh"),
-    "shrug":     EmoteCommand("shrug"),
-    "frown":     EmoteCommand("frown"),
-    "glare":     EmoteCommand("glare"),
-    "wink":      EmoteCommand("wink"),
-    "smirk":     EmoteCommand("smirk"),
-    "cheer":     EmoteCommand("cheer"),
+    "say":       SayCommand(),
+    ";":         EmCommand(),
+    "emote":     EmCommand(),
+    "tell":      TellCommand(),
+    "ask":       AskCommand(),
+    "history":   HistoryCommand(),
+    "chat":      ChannelCommand("chat"),
+    "merchant":  ChannelCommand("merchant"),
+    "fighter":   ChannelCommand("fighter"),
+    "wizard":    ChannelCommand("wizard"),
+    "cleric":    ChannelCommand("cleric"),
+    "rogue":     ChannelCommand("rogue"),
+    "thief":     ChannelCommand("thief"),
+    "ranger":    ChannelCommand("ranger"),
+    "staff":     ChannelCommand("staff"),
+    "council":   ChannelCommand("council"),
+    "world":     ChannelCommand("world"),
 
-    "grin":      EmoteCommand("grin"),
-    "scowl":     EmoteCommand("scowl"),
-    "poke":      EmoteCommand("poke"),
-    "point":     EmoteCommand("point"),
-    "nod_slow":  EmoteCommand("nod_slow"),
-    "shake_head":EmoteCommand("shake_head"),
-
-    "clap":      EmoteCommand("clap"),
-    "crossarms": EmoteCommand("crossarms"),
-    "squint":    EmoteCommand("squint"),
-    "torex":     EmoteCommand("torex"),
+    "smile":      EmoteCommand("smile"),
+    "nod":        EmoteCommand("nod"),
+    "bow":        EmoteCommand("bow"),
+    "wave":       EmoteCommand("wave"),
+    "laugh":      EmoteCommand("laugh"),
+    "chuckle":    EmoteCommand("chuckle"),
+    "snicker":    EmoteCommand("snicker"),
+    "giggle":     EmoteCommand("giggle"),
+    "sigh":       EmoteCommand("sigh"),
+    "shrug":      EmoteCommand("shrug"),
+    "frown":      EmoteCommand("frown"),
+    "glare":      EmoteCommand("glare"),
+    "wink":       EmoteCommand("wink"),
+    "smirk":      EmoteCommand("smirk"),
+    "cheer":      EmoteCommand("cheer"),
+    "grin":       EmoteCommand("grin"),
+    "scowl":      EmoteCommand("scowl"),
+    "poke":       EmoteCommand("poke"),
+    "point":      EmoteCommand("point"),
+    "nod_slow":   EmoteCommand("nod_slow"),
+    "shake_head": EmoteCommand("shake_head"),
+    "clap":       EmoteCommand("clap"),
+    "crossarms":  EmoteCommand("crossarms"),
+    "squint":     EmoteCommand("squint"),
+    "torex":      EmoteCommand("torex"),
 
     "exits":     ExitsCommand(),
 
@@ -163,13 +159,14 @@ COMMANDS = {
     "who":       WhoCommand(),
     "smell":     SmellCommand(),
     "listen":    ListenCommand(),
+    "search":    SearchCommand(),
     "time":      TimeCommand(),
     "finger":    FingerCommand(),
     "level":     LevelCommand(),
 
     "attack":    AttackCommand(),
     "flee":      FleeCommand(),
-    
+
     "salute":    PowerCommand("salute"),
     "magelight": PowerCommand("magelight"),
     "prayer":    PowerCommand("prayer"),
@@ -179,13 +176,12 @@ COMMANDS = {
     "maketorch": PowerCommand("maketorch"),
     "headbutt":  PowerCommand("headbutt"),
     "trample":   PowerCommand("trample"),
-    
+    "pray":      PowerCommand("pray"),
+
     "subjects":  SubjectsCommand(),
     "write":     WriteCommand(),
     "erase":     EraseCommand(),
     "read":      ReadCommand(),
-    
-    "pray": PowerCommand("pray"),
 }
 
 
@@ -194,7 +190,7 @@ COMMANDS = {
 # ---------------------------------------------------------------------------
 
 def _parse(raw: str) -> tuple[str, list[str]]:
-    """Split raw input into (verb, args). UNCHANGED."""
+    """Split raw input into (verb, args)."""
     if raw.startswith(";"):
         raw = "emote " + raw[1:].lstrip()
     parts = raw.strip().split()
@@ -204,10 +200,79 @@ def _parse(raw: str) -> tuple[str, list[str]]:
 
 
 def _run_command(command, character, conn, args, session):
-    # CHANGED: takes session, sends output over socket instead of console.print()
     output = command.execute(character, conn, args, session)
     if output:
-        session.send("\n"+output + "\n\n")
+        session.send("\n" + output + "\n\n")
+
+
+def _trigger_aggro(conn, character, room_id: int) -> None:
+    """
+    Check for hostile NPCs in the room and initiate combat.
+    Skips NPCs already fighting this character.
+    """
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT ni.id, nt.name
+            FROM npc_instances ni
+            JOIN npc_templates nt ON nt.id = ni.npc_template_id
+            WHERE ni.location_id = %s
+              AND ni.is_alive = TRUE
+              AND nt.is_hostile = TRUE
+              AND ni.id NOT IN (
+                  SELECT defender_id FROM active_combats
+                  WHERE attacker_type = 'character'
+                    AND attacker_id = %s
+                    AND defender_type = 'npc'
+              )
+            """,
+            (room_id, character.id),
+        )
+        hostile_npcs = cur.fetchall()
+
+    for npc_id, npc_name in hostile_npcs:
+        with conn.cursor() as cur:
+            # Player → NPC
+            cur.execute(
+                """
+                INSERT INTO active_combats
+                    (attacker_type, attacker_id, defender_type, defender_id, location_id)
+                VALUES ('character', %s, 'npc', %s, %s)
+                ON CONFLICT DO NOTHING
+                """,
+                (character.id, npc_id, room_id),
+            )
+
+            # NPC → Player (only if not already retaliating against someone)
+            cur.execute(
+                """
+                SELECT id FROM active_combats
+                WHERE attacker_type = 'npc'
+                  AND attacker_id = %s
+                  AND defender_type = 'character'
+                """,
+                (npc_id,),
+            )
+            if cur.fetchone() is None:
+                cur.execute(
+                    """
+                    INSERT INTO active_combats
+                        (attacker_type, attacker_id, defender_type, defender_id, location_id)
+                    VALUES ('npc', %s, 'character', %s, %s)
+                    ON CONFLICT DO NOTHING
+                    """,
+                    (npc_id, character.id, room_id),
+                )
+
+        conn.commit()
+
+        emit_event(
+            conn,
+            event_type="combat",
+            sender_id=character.id,
+            location_id=room_id,
+            message=f"{npc_name.capitalize()} attacks {character.name}!",
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -215,85 +280,65 @@ def _run_command(command, character, conn, args, session):
 # ---------------------------------------------------------------------------
 
 def run_game_loop_for_client(character_id: int, session) -> None:
-    # CHANGED: renamed, takes session instead of using local terminal
     """
     Main game loop for a networked client session.
-
-    Responsibilities:
-      - Load player
-      - Start broadcast polling (session-aware)
-      - Handle commands
-      - Handle movement
-      - Clean shutdown
     """
-
-    # -------------------------------------------------------------------
-    # Initial load
-    # -------------------------------------------------------------------
 
     with get_connection() as conn:
         character = Character.get_by_id(conn, character_id)
 
     if character is None:
-        session.send("Could not load character. Returning to menu.\n")  # CHANGED
+        session.send("Could not load character. Returning to menu.\n")
         return
 
-    session.send(f"Entering the world as {character.name.capitalize()}...\n")  # CHANGED
-
-    # -------------------------------------------------------------------
-    # Broadcast startup
-    # -------------------------------------------------------------------
+    session.send(f"Entering the world as {character.name.capitalize()}...\n")
 
     with get_connection() as conn:
         starting_broadcast_id = BroadcastMessage.get_latest_id(conn)
 
-    # CHANGED: pass session into poller so it sends to the right player
     poller = BroadcastPoller(starting_broadcast_id, character_id, session)
     poller.start()
     register_session(character_id, session)
 
-
     try:
 
-        # ---------------------------------------------------------------
-        # Initial room look
-        # ---------------------------------------------------------------
-
+        # Initial look
         with get_connection() as conn:
             character = Character.get_by_id(conn, character_id)
-            _run_command(COMMANDS["look"], character, conn, [], session)  # CHANGED
-
-        # ---------------------------------------------------------------
-        # Main loop
-        # ---------------------------------------------------------------
+            _run_command(COMMANDS["look"], character, conn, [], session)
 
         while True:
 
-            raw = session.recv()              # CHANGED: reads from socket
+            raw = session.recv()
 
             if raw is None:
-                # Player disconnected unexpectedly
                 break
 
             if not raw:
                 continue
 
             verb, args = _parse(raw)
-            if character.pending_look:
-                _run_command(COMMANDS["look"], character, conn, [], session)
-                with conn.cursor() as cur:
-                    cur.execute(
-                        "UPDATE characters SET pending_look = FALSE WHERE id = %s",
-                        (character_id,)
-                    )
-                conn.commit()
+
+            # -----------------------------------------------------------
+            # Pending look (after death/respawn)
+            # -----------------------------------------------------------
+
+            with get_connection() as conn:
+                character = Character.get_by_id(conn, character_id)
+                if character.pending_look:
+                    _run_command(COMMANDS["look"], character, conn, [], session)
+                    with conn.cursor() as cur:
+                        cur.execute(
+                            "UPDATE characters SET pending_look = FALSE WHERE id = %s",
+                            (character_id,)
+                        )
+                    conn.commit()
 
             # -----------------------------------------------------------
             # Quit
             # -----------------------------------------------------------
 
             if verb in ("quit", "exit", "q"):
-
                 session.send("\n")
                 session.send(
                     f"{character.name.capitalize()} rests for now. Farewell.\n"
@@ -310,7 +355,6 @@ def run_game_loop_for_client(character_id: int, session) -> None:
                         location_id=room.id,
                         message=f"{character.name.capitalize()} fades from the world.",
                     )
-
                 break
 
             # -----------------------------------------------------------
@@ -339,19 +383,17 @@ def run_game_loop_for_client(character_id: int, session) -> None:
                         session.send("That way is locked.\n")
                         continue
 
-                    # --- Access check ---
+                    # Access check
                     required_class = exit_data.get("required_class")
                     required_unguilded = exit_data.get("required_unguilded", False)
 
                     if required_class or required_unguilded:
                         is_unguilded = character.char_class is None or character.char_class == "Immigrant"
-
                         passed = False
                         if required_unguilded and is_unguilded:
                             passed = True
                         if required_class and character.char_class == required_class:
                             passed = True
-
                         if not passed:
                             session.send("A guild warden blocks your path. Members only.\n")
                             continue
@@ -361,11 +403,7 @@ def run_game_loop_for_client(character_id: int, session) -> None:
 
                     character.move_to(conn, new_room)
 
-                    with conn.cursor() as cur:
-                        cur.execute(
-                            "UPDATE characters SET room_entered_at = NOW() WHERE id = %s",
-                            (character.id,)
-                        )
+                    # EP drain
                     with conn.cursor() as cur:
                         cur.execute(
                             """
@@ -376,19 +414,25 @@ def run_game_loop_for_client(character_id: int, session) -> None:
                             (exit_data["cost"], character.id),
                         )
 
-                    character = Character.get_by_id(conn, character_id)
-                    if character.endurance <= 0:
-                        session.send("You are exhausted and cannot move.\n")
+                    # room_entered_at
+                    with conn.cursor() as cur:
+                        cur.execute(
+                            "UPDATE characters SET room_entered_at = NOW() WHERE id = %s",
+                            (character.id,)
+                        )
+
+                    # Aggro check
+                    _trigger_aggro(conn, character, new_room)
 
                     character = Character.get_by_id(conn, character_id)
+
+                    if character.endurance <= 0:
+                        session.send("You are exhausted.\n")
+
                     _run_command(COMMANDS["look"], character, conn, [], session)
 
-                    # --- Room script hook ---
+                    # Room script on_enter
                     new_room_obj = Room.get_by_id(conn, new_room)
-                    print(f"[debug] new_room_obj.script_key = {new_room_obj.script_key}")
-                    script = room_scripts.get_script(new_room_obj.script_key)
-                    print(f"[debug] script = {script}")
-
                     if new_room_obj is not None:
                         script = room_scripts.get_script(new_room_obj.script_key)
                         if script and hasattr(script, "on_enter"):
@@ -411,45 +455,37 @@ def run_game_loop_for_client(character_id: int, session) -> None:
                     )
 
                     continue
-                
-                # -----------------------------------------------------------
-                # Room commands
-                # -----------------------------------------------------------
-            
-                # Before your normal command lookup
+
+                # -------------------------------------------------------
+                # Room script on_command
+                # -------------------------------------------------------
+
                 script = room_scripts.get_script(room.script_key)
                 if script and hasattr(script, "on_command"):
                     consumed = script.on_command(character, room, verb, args, conn, session)
                     if consumed:
                         continue
+
                 # -------------------------------------------------------
                 # Registered commands
                 # -------------------------------------------------------
 
                 if verb in COMMANDS:
-                    _run_command(COMMANDS[verb], character, conn, args, session)  # CHANGED
+                    _run_command(COMMANDS[verb], character, conn, args, session)
                     continue
 
                 # -------------------------------------------------------
                 # Unknown
                 # -------------------------------------------------------
 
-                session.send(                 # CHANGED
+                session.send(
                     f"Unknown command '{verb}'. Try: look, north, quit.\n"
                 )
 
     finally:
 
-        # ---------------------------------------------------------------
-        # Always stop background poller
-        # ---------------------------------------------------------------
-
         poller.stop()
         unregister_session(character_id)
-
-        # ---------------------------------------------------------------
-        # Always mark player offline
-        # ---------------------------------------------------------------
 
         try:
             with get_connection() as conn:
@@ -459,8 +495,5 @@ def run_game_loop_for_client(character_id: int, session) -> None:
                         (character_id,),
                     )
                 conn.commit()
-
         except Exception as e:
             print(f"[FATAL] Failed to mark character offline: {e}")
-            # NOTE: print() here is intentional — this is a server-side
-            # error log, not player output. Session may already be dead.

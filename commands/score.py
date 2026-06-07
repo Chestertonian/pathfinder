@@ -26,7 +26,7 @@ class ScoreCommand:
         lines.append("-" * 40)
         lines.append("")
 
-        lines.append(f"  Level  {character.level}    XP  {character.xp}    Gold  {character.gold}")
+        lines.append(f"  Level  {character.level}    XP  {character.xp}    copper  {character.copper}")
         lines.append("")
 
         lines.append("  Resources")

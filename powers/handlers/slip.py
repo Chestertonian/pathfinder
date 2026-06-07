@@ -34,7 +34,7 @@ def execute(character, target, args, conn, session) -> None:
 
     emit_event(
         conn,
-        event_type="tell",
+        event_type="personal_message",
         sender_id=character.id,
         recipient_character_id=target["id"],
         message=to_ansi(

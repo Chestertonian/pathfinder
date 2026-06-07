@@ -143,7 +143,7 @@ class Character:
         self.power_max     = row["power_max"]
         self.endurance     = row["endurance"]
         self.endurance_max = row["endurance_max"]
-        self.gold          = row["gold"]
+        self.copper          = row["copper"]
         self.gender        = row["gender"]
 
         # Stats
@@ -163,7 +163,7 @@ class Character:
             cur.execute(
                 """
             SELECT c.id, c.name, c.class, c.level, c.xp, c.location_id, c.is_staff,
-                c.hp, c.hp_max, c.power, c.power_max, c.endurance, c.endurance_max, c.gold,
+                c.hp, c.hp_max, c.power, c.power_max, c.endurance, c.endurance_max, c.copper,
                 c.strength, c.dexterity, c.constitution, c.intelligence, c.wisdom, c.charisma,
                 c.room_entered_at, c.background, c.race, c.title_id,
                 t.name AS title_name, t.guild AS title_guild, c.pending_look, gender
@@ -190,7 +190,7 @@ class Character:
                 "power_max":      row[10],
                 "endurance":      row[11],
                 "endurance_max":  row[12],
-                "gold":           row[13],
+                "copper":           row[13],
                 "strength":       row[14],
                 "dexterity":      row[15],
                 "constitution":   row[16],

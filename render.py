@@ -37,6 +37,9 @@ def render_event(conn, event):
 
     if event.event_type == "tell":
         return to_ansi(f"[cyan](tell) {event.message}[/cyan]\n")
+    
+    if event.event_type == "personal_message":
+        return (to_ansi(event.message))
 
     if event.event_type == "channel":
         channel = (event.channel or "chat").capitalize()

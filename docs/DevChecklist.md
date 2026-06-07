@@ -12,7 +12,7 @@
 ### Phase 2 — Characters
 - [X] Build character creation (name, class, stat generation, save to DB)
 - [X] Build character login (load existing character from DB by name)
-- [ ] Display character sheet (`stats`, `inventory`, `gold`, `class`)
+- [ ] Display character sheet (`stats`, `inventory`, `copper`, `class`)
 - [X] Implement the six stats and their modifier calculations
 
 ### Phase 3 — Core Game Loop
@@ -56,7 +56,7 @@
 - [ ] Implement loot command after combat
 
 ### Phase 8 — Economy & Shops
-- [ ] Implement gold on characters
+- [ ] Implement copper on characters
 - [ ] Build shop system (browse, buy, sell)
 - [ ] Implement shop inventories per location/NPC
 - [ ] Implement vendor dialogue (greetings, haggling if desired)

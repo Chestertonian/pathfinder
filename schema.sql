@@ -77,7 +77,7 @@ CREATE TABLE characters (
     endurance       INTEGER NOT NULL DEFAULT 100,
     endurance_max   INTEGER NOT NULL DEFAULT 100,
 
-    gold            INTEGER NOT NULL DEFAULT 0 -- Currency
+    copper            INTEGER NOT NULL DEFAULT 0 -- Currency
 );
 
 -- =============================================================
@@ -277,7 +277,7 @@ CREATE TABLE quests (
     name        TEXT NOT NULL,
     description TEXT NOT NULL,
 
-    reward_gold INTEGER NOT NULL DEFAULT 0,
+    reward_copper INTEGER NOT NULL DEFAULT 0,
     reward_xp   INTEGER NOT NULL DEFAULT 0,
 
     giver_npc_template_id INTEGER REFERENCES npc_templates(id)

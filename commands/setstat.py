@@ -1,5 +1,5 @@
 VALID_STATS = {"hp", "power", "endurance", "strength", "dexterity",
-               "constitution", "intelligence", "wisdom", "charisma", "gold", "xp"}
+               "constitution", "intelligence", "wisdom", "charisma", "copper", "xp"}
 
 class SetstatCommand:
     def execute(self, character, conn, args, session):

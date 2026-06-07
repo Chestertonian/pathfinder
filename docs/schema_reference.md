@@ -57,7 +57,7 @@ One row per player character. Also the login identity.
 | gender | int | 0=unknown, 1=male, 2=female |
 | is_logged_in | bool | |
 | room_entered_at | timestamptz | Used for timing/events |
-| gold | int | Currency |
+| copper | int | Currency |
 | **Stats** | | |
 | strength / dexterity / constitution / intelligence / wisdom / charisma | int | Default 10 |
 | **Resources** | | |
@@ -197,7 +197,7 @@ Items available for purchase. Tied to either a location or an NPC instance.
 | location_id | FK → locations (nullable) |
 | npc_instance_id | FK → npc_instances (nullable) |
 | item_template_id | FK → item_templates |
-| price | Buy price in gold |
+| price | Buy price in copper |
 | stock | NULL = infinite |
 
 **Constraint:** At least one of location_id or npc_instance_id must be set.
@@ -210,7 +210,7 @@ Items available for purchase. Tied to either a location or an NPC instance.
 | Column | Notes |
 |---|---|
 | name / description | |
-| reward_gold / reward_xp | |
+| reward_copper / reward_xp | |
 | giver_npc_template_id | FK → npc_templates (nullable) |
 
 ### `quest_objectives`

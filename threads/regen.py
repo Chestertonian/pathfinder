@@ -47,6 +47,7 @@ def _regen_loop(conn_factory):
         try:
             with conn_factory() as conn:
                 _regen_players(conn)
+                _check_aggro(conn)
                 _respawn_npcs(conn)
                 _cleanup_stale_combats(conn)
                 conn.commit()
@@ -216,3 +217,68 @@ def start_regen_thread(conn_factory):
     )
     t.start()
     return t
+
+# ---------------------------------------------------------------------------
+# Check for aggro
+# ---------------------------------------------------------------------------
+
+def _check_aggro(conn):
+    """
+    Find hostile NPCs sharing a room with players who aren't
+    already in combat with them. Initiate combat.
+    """
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT ni.id, nt.name, ni.location_id, c.id AS character_id, c.name AS character_name
+            FROM npc_instances ni
+            JOIN npc_templates nt ON nt.id = ni.npc_template_id
+            JOIN characters c ON c.location_id = ni.location_id
+            WHERE ni.is_alive = TRUE
+              AND nt.is_hostile = TRUE
+              AND c.is_logged_in = TRUE
+              AND NOT EXISTS (
+                  SELECT 1 FROM active_combats
+                  WHERE attacker_type = 'npc'
+                    AND attacker_id = ni.id
+                    AND defender_type = 'character'
+                    AND defender_id = c.id
+              )
+            """
+        )
+        rows = cur.fetchall()
+
+    for npc_id, npc_name, location_id, char_id, char_name in rows:
+        with conn.cursor() as cur:
+            # Player → NPC
+            cur.execute(
+                """
+                INSERT INTO active_combats
+                    (attacker_type, attacker_id, defender_type, defender_id, location_id)
+                VALUES ('character', %s, 'npc', %s, %s)
+                ON CONFLICT DO NOTHING
+                """,
+                (char_id, npc_id, location_id),
+            )
+
+            # NPC → Player
+            cur.execute(
+                """
+                INSERT INTO active_combats
+                    (attacker_type, attacker_id, defender_type, defender_id, location_id)
+                VALUES ('npc', %s, 'character', %s, %s)
+                ON CONFLICT DO NOTHING
+                """,
+                (npc_id, char_id, location_id),
+            )
+
+        conn.commit()
+
+        from events import emit_event
+        emit_event(
+            conn,
+            event_type="combat",
+            sender_id=char_id,
+            location_id=location_id,
+            message=f"{npc_name.capitalize()} attacks {char_name.capitalize()}!",
+        )
