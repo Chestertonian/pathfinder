@@ -3,6 +3,7 @@ commands/items.py — GetCommand, DropCommand, InventoryCommand
 """
 
 from events import emit_event
+from output import to_ansi
 
 
 class GetCommand:
@@ -141,10 +142,11 @@ class InventoryCommand:
             """, (character.id,))
             rows = cur.fetchall()
             
+            
         equipped_items = {}
         carried_items = []
         coin_items = []
-        clothing_items = [] 
+        clothing_items= []
 
         for name, item_type, weight, equipped, equipped_slot, quantity, template_id in rows:
             if template_id in self.COIN_TEMPLATE_IDS:
@@ -156,6 +158,21 @@ class InventoryCommand:
             else:
                 carried_items.append((name, weight, quantity))
 
+        # After the main rows query, fetch equipped clothing with color
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT it.name, ct.color
+                FROM item_instances ii
+                JOIN item_templates it ON it.id = ii.item_template_id
+                JOIN clothing_templates ct ON ct.item_template_id = ii.item_template_id
+                WHERE ii.owner_type = 'character'
+                AND ii.owner_id = %s
+                AND ii.equipped = TRUE
+                ORDER BY ct.order_number ASC
+            """, (character.id,))
+            clothing_items = [(name, color) for name, color in cur.fetchall()]
+            
+            
         lines = []
         lines.append("-" * 40)
         lines.append("")
@@ -188,11 +205,14 @@ class InventoryCommand:
                 lines.append(f"    {quantity} {label}")
             lines.append("")
         
-        # --- Clothing section ---     
+        # --- Clothing section ---
         if clothing_items:
             lines.append("  Wearing:")
-            for (name,) in clothing_items:
-                lines.append(f"    {name}")
+            for name, color in clothing_items:
+                if color:
+                    lines.append(to_ansi(f"[{color}]    {name}[/{color}]"))
+                else:
+                    lines.append(f"    {name}")
             lines.append("")
 
         lines.append("-" * 40)

@@ -62,6 +62,7 @@ from commands.promote import PromoteCommand, DemoteCommand
 
 from commands.items import GetCommand, DropCommand, InventoryCommand
 from commands.equipment import EquipCommand, EqCommand, RemoveCommand, UnequipCommand
+from commands.give import GiveCommand
 
 from commands.economy import WithdrawCommand, DepositCommand, WealthCommand
 from commands.shop import BuyCommand, SellCommand, ListCommand
@@ -205,6 +206,7 @@ COMMANDS = {
     "list":     ListCommand(),
     "buy":      BuyCommand(),
     "sell":     SellCommand(),
+    "give":     GiveCommand(),
     
 }
 

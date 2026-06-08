@@ -448,3 +448,19 @@ class EqCommand:
                 lines.append(line)
 
         return "\n".join(lines) + "\n"
+    
+
+def get_item_color(conn, item_template_id):
+    """
+    Returns the color for an item template, or None.
+    Checks clothing_templates first, armor_templates next (when you add color there).
+    """
+    with conn.cursor() as cur:
+        cur.execute("""
+            SELECT color FROM clothing_templates
+            WHERE item_template_id = %s
+        """, (item_template_id,))
+        row = cur.fetchone()
+        if row:
+            return row[0]
+    return None

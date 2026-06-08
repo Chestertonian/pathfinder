@@ -106,3 +106,14 @@ def prompt(text: str) -> str:
         name = prompt("Enter your name:")
     """
     return console.input(f"[bold white]{text}[/bold white] ").strip()
+
+
+
+def colorize(name, color=None):
+    """
+    Returns name wrapped in ANSI color if color is set, plain otherwise.
+    Use this everywhere an item name is displayed.
+    """
+    if color:
+        return to_ansi(f"[{color}]{name}[/{color}]")
+    return name
