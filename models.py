@@ -121,10 +121,12 @@ class Room:
 
 class Character:
     def __init__(self, row: dict):
+        print("Init successful")
         self.id            = row["id"]
         self.name          = row["name"]
         self.char_class    = row["class"]
         self.level         = row["level"]
+        self.description   = row["description"]
         self.race          = row["race"]
         self.background    = row["background"]
         self.xp            = row["xp"]
@@ -143,7 +145,7 @@ class Character:
         self.power_max     = row["power_max"]
         self.endurance     = row["endurance"]
         self.endurance_max = row["endurance_max"]
-        self.copper          = row["copper"]
+        self.copper        = row["copper"]
         self.gender        = row["gender"]
 
         # Stats
@@ -166,7 +168,7 @@ class Character:
                 c.hp, c.hp_max, c.power, c.power_max, c.endurance, c.endurance_max, c.copper,
                 c.strength, c.dexterity, c.constitution, c.intelligence, c.wisdom, c.charisma,
                 c.room_entered_at, c.background, c.race, c.title_id,
-                t.name AS title_name, t.guild AS title_guild, c.pending_look, gender
+                t.name AS title_name, t.guild AS title_guild, c.pending_look, c.gender, c.description
             FROM characters c
             LEFT JOIN titles t ON t.id = c.title_id
             WHERE c.id = %s
@@ -205,6 +207,7 @@ class Character:
                 "title_guild": row[25],
                 "pending_look": row[26], 
                 "gender": row[27],
+                "description": row[28],
             })
 
     def get_room(self, conn) -> "Room | None":

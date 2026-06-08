@@ -24,7 +24,7 @@ class FleeCommand:
 
             cur.execute(
                 """
-                SELECT to_location, direction
+                SELECT to_location, direction, cost
                 FROM exits
                 WHERE from_location = %s
                   AND is_locked = FALSE
@@ -36,7 +36,7 @@ class FleeCommand:
             if not exits:
                 return "You can't flee — there's nowhere to go!"
 
-            to_location, direction = random.choice(exits)
+            to_location, direction, cost = random.choice(exits)
 
             cur.execute(
                 """
@@ -56,6 +56,8 @@ class FleeCommand:
                 "UPDATE characters SET location_id = %s WHERE id = %s",
                 (to_location, character.id),
             )
+            
+            # using 'cost', lower player EP. 
 
         conn.commit()
 
