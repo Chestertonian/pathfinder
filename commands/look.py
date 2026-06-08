@@ -39,7 +39,8 @@ class LookCommand(Command):
 
         if match:
             _emit_look_event(conn, character, room, match["name"])
-            return f"\n{match["description"]}\n"
+            condition = _health_condition(match["hp"], match["hp_max"])
+            return f"\n{match["description"]}\n{match["name"]} {condition}.\n"
 
         # ── LOOK AT NPC ───────────────────────────────────────────────────
         npcs = room.get_npcs(conn)
@@ -144,7 +145,7 @@ def _get_players_in_room(conn, room_id: int, exclude_id: int) -> list[dict]:
     with conn.cursor() as cur:
         cur.execute(
             """
-            SELECT id, name, description
+            SELECT id, name, description, hp, hp_max
             FROM characters
             WHERE location_id = %s
               AND is_logged_in = TRUE
@@ -153,7 +154,7 @@ def _get_players_in_room(conn, room_id: int, exclude_id: int) -> list[dict]:
             (room_id, exclude_id),
         )
         rows = cur.fetchall()
-    return [{"id": row[0], "name": row[1], "description": f"{row[2]}", "type": "player"} for row in rows]
+    return [{"id": row[0], "name": row[1], "description": f"{row[2]}", "type": "player", "hp": row[3], "hp_max": row[4]} for row in rows]
 
 
 def _find_by_name(name: str, objects: list) -> object | None:
@@ -172,8 +173,6 @@ def _find_by_name(name: str, objects: list) -> object | None:
 def _health_condition(hp: int, hp_max: int) -> str:
     """
     Return a plain-English health description.
-    Players see this instead of raw numbers — keeps combat information
-    appropriately ambiguous, matching the design doc's intent.
     """
     if hp_max == 0:
         return "is in unknown condition"

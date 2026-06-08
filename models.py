@@ -121,7 +121,6 @@ class Room:
 
 class Character:
     def __init__(self, row: dict):
-        print("Init successful")
         self.id            = row["id"]
         self.name          = row["name"]
         self.char_class    = row["class"]

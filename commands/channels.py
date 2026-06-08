@@ -36,7 +36,7 @@ def _check_council(character) -> bool:
 CHANNELS = {
     "chat":       ("Chat",       lambda c: True,              "green"),
     "northlands": ("Northlands", lambda c: True,              "blue"),
-    "world":      ("World",      lambda c: True,              "yellow"),
+    "world":      ("World",      _check_staff,              "yellow"),
     "merchant":   ("Merchant",   _check_class("merchant"),    "cyan"),
     "fighter":    ("Fighter",    _check_class("fighter"),     "cyan"),
     "wizard":     ("Wizard",     _check_class("wizard"),      "cyan"),

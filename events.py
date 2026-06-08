@@ -207,6 +207,12 @@ def should_deliver(character, event: Event) -> bool:
         return access_check(character)
 
     # -------------------------------------------------------
+    # Merchant announcements
+    # -------------------------------------------------------
+    if event.event_type == "hawk":
+        return event.sender_id == character.id
+
+    # -------------------------------------------------------
     # System messages
     # -------------------------------------------------------
     if event.event_type == "system":

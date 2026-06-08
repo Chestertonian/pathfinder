@@ -34,6 +34,7 @@ from commands.time import TimeCommand
 from commands.who import WhoCommand
 from commands.finger import FingerCommand
 from commands.level import LevelCommand
+from commands.powers_list import PowersCommand
 
 from commands.say import SayCommand
 from commands.emote import EmoteCommand as EmCommand
@@ -163,6 +164,7 @@ COMMANDS = {
     "time":      TimeCommand(),
     "finger":    FingerCommand(),
     "level":     LevelCommand(),
+    "powers":    PowersCommand(),
 
     "attack":    AttackCommand(),
     "flee":      FleeCommand(),
@@ -173,11 +175,13 @@ COMMANDS = {
     "flourish":  PowerCommand("flourish"),
     "slip":      PowerCommand("slip"),
     "whittle":   PowerCommand("whittle"),
-    "maketorch": PowerCommand("maketorch"),
     "headbutt":  PowerCommand("headbutt"),
     "trample":   PowerCommand("trample"),
     "pray":      PowerCommand("pray"),
-
+    
+    "maketorch": PowerCommand("maketorch"),
+    "hawkwares": PowerCommand("hawkwares"),
+    
     "subjects":  SubjectsCommand(),
     "write":     WriteCommand(),
     "erase":     EraseCommand(),

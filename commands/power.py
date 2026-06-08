@@ -25,11 +25,12 @@ from events import emit_event
 import powers.handlers.salute as salute_handler
 import powers.handlers.slip as slip_handler
 import powers.handlers.pray as pray_handler
+import powers.handlers.maketorch as maketorch_handler
+import powers.handlers.hawkwares as hawkwares_handler
+import powers.handlers.flourish as flourish_handler
 '''import powers.handlers.magelight as magelight_handler
 import powers.handlers.prayer as prayer_handler
-import powers.handlers.flourish as flourish_handler
 import powers.handlers.whittle as whittle_handler
-import powers.handlers.maketorch as maketorch_handler
 import powers.handlers.headbutt as headbutt_handler
 import powers.handlers.trample as trample_handler'''
 
@@ -46,12 +47,14 @@ POWER_HANDLERS = {
     "salute":    salute_handler,
     "slip":      slip_handler,
     "pray":      pray_handler,
+    "maketorch": maketorch_handler,
+    "hawkwares": hawkwares_handler,
+    "flourish":  flourish_handler,
 }
 '''    "magelight": magelight_handler,
     "prayer":    prayer_handler,
-    "flourish":  flourish_handler,
     "whittle":   whittle_handler,
-    "maketorch": maketorch_handler,
+
     "headbutt":  headbutt_handler,
     "trample":   trample_handler,'''
 
@@ -90,14 +93,11 @@ class PowerCommand:
         # --- 3. Check cooldown ---
         remaining = _cooldown_remaining(conn, character.id, self.power_name)
         if remaining > 0:
-            minutes, seconds = divmod(int(remaining), 60)
-            if minutes > 0:
-                return f"You must wait {minutes}m {seconds}s before using {self.power_name} again."
-            return f"You must wait {seconds}s before using {self.power_name} again."
+            return f"You must wait before using {self.power_name} again."
 
         # --- 4. Check SP ---
         if character.power < power["sp_cost"]:
-            return f"You don't have enough energy. ({power['sp_cost']} SP required)"
+            return f"You don't have enough energy to do that."
 
         # --- 5. Resolve target ---
         target = None
