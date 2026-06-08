@@ -62,24 +62,38 @@ from commands.promote import PromoteCommand, DemoteCommand
 
 from commands.items import GetCommand, DropCommand, InventoryCommand
 
-from commands.bulletinboard import WriteCommand, SubjectsCommand, ReadCommand, EraseCommand
-
+from commands.bulletinboard import (
+    WriteCommand,
+    SubjectsCommand,
+    ReadCommand,
+    EraseCommand,
+)
 
 # ---------------------------------------------------------------------------
 # Direction aliases
 # ---------------------------------------------------------------------------
 
 _DIRS = {
-    "n": "north", "north": "north",
-    "s": "south", "south": "south",
-    "e": "east",  "east":  "east",
-    "w": "west",  "west":  "west",
-    "ne": "northeast", "northeast": "northeast",
-    "nw": "northwest", "northwest": "northwest",
-    "se": "southeast", "southeast": "southeast",
-    "sw": "southwest", "southwest": "southwest",
-    "u":  "up",   "up":   "up",
-    "d":  "down", "down": "down",
+    "n": "north",
+    "north": "north",
+    "s": "south",
+    "south": "south",
+    "e": "east",
+    "east": "east",
+    "w": "west",
+    "west": "west",
+    "ne": "northeast",
+    "northeast": "northeast",
+    "nw": "northwest",
+    "northwest": "northwest",
+    "se": "southeast",
+    "southeast": "southeast",
+    "sw": "southwest",
+    "southwest": "southwest",
+    "u": "up",
+    "up": "up",
+    "d": "down",
+    "down": "down",
 }
 
 
@@ -88,110 +102,103 @@ _DIRS = {
 # ---------------------------------------------------------------------------
 
 COMMANDS = {
-    "look":      LookCommand(),
-    "l":         LookCommand(),
-
-    "spawn":     SpawnCommand(),
+    "look": LookCommand(),
+    "l": LookCommand(),
+    "spawn": SpawnCommand(),
     "spawnitem": SpawnItemCommand(),
-    "summon":    SummonCommand(),
-    "proclaim":  ProclaimCommand(),
-    "shutdown":  ShutdownCommand(),
-    "kick":      KickCommand(),
-    "find":      FindCommand(),
-    "goto":      GotoCommand(),
-    "setstat":   SetstatCommand(),
-    "promote":   PromoteCommand(),
-    "demote":    DemoteCommand(),
-    "players":   PlayersCommand(),
-
-    "say":       SayCommand(),
-    ";":         EmCommand(),
-    "emote":     EmCommand(),
-    "tell":      TellCommand(),
-    "ask":       AskCommand(),
-    "history":   HistoryCommand(),
-    "chat":      ChannelCommand("chat"),
-    "merchant":  ChannelCommand("merchant"),
-    "fighter":   ChannelCommand("fighter"),
-    "wizard":    ChannelCommand("wizard"),
-    "cleric":    ChannelCommand("cleric"),
-    "rogue":     ChannelCommand("rogue"),
-    "thief":     ChannelCommand("thief"),
-    "ranger":    ChannelCommand("ranger"),
-    "staff":     ChannelCommand("staff"),
-    "council":   ChannelCommand("council"),
-    "world":     ChannelCommand("world"),
-
-    "smile":      EmoteCommand("smile"),
-    "nod":        EmoteCommand("nod"),
-    "bow":        EmoteCommand("bow"),
-    "wave":       EmoteCommand("wave"),
-    "laugh":      EmoteCommand("laugh"),
-    "chuckle":    EmoteCommand("chuckle"),
-    "snicker":    EmoteCommand("snicker"),
-    "giggle":     EmoteCommand("giggle"),
-    "sigh":       EmoteCommand("sigh"),
-    "shrug":      EmoteCommand("shrug"),
-    "frown":      EmoteCommand("frown"),
-    "glare":      EmoteCommand("glare"),
-    "wink":       EmoteCommand("wink"),
-    "smirk":      EmoteCommand("smirk"),
-    "cheer":      EmoteCommand("cheer"),
-    "grin":       EmoteCommand("grin"),
-    "scowl":      EmoteCommand("scowl"),
-    "poke":       EmoteCommand("poke"),
-    "point":      EmoteCommand("point"),
-    "nod_slow":   EmoteCommand("nod_slow"),
+    "summon": SummonCommand(),
+    "proclaim": ProclaimCommand(),
+    "shutdown": ShutdownCommand(),
+    "kick": KickCommand(),
+    "find": FindCommand(),
+    "goto": GotoCommand(),
+    "setstat": SetstatCommand(),
+    "promote": PromoteCommand(),
+    "demote": DemoteCommand(),
+    "players": PlayersCommand(),
+    "say": SayCommand(),
+    ";": EmCommand(),
+    "emote": EmCommand(),
+    "tell": TellCommand(),
+    "ask": AskCommand(),
+    "history": HistoryCommand(),
+    "chat": ChannelCommand("chat"),
+    "merchant": ChannelCommand("merchant"),
+    "fighter": ChannelCommand("fighter"),
+    "wizard": ChannelCommand("wizard"),
+    "cleric": ChannelCommand("cleric"),
+    "rogue": ChannelCommand("rogue"),
+    "thief": ChannelCommand("thief"),
+    "ranger": ChannelCommand("ranger"),
+    "staff": ChannelCommand("staff"),
+    "council": ChannelCommand("council"),
+    "world": ChannelCommand("world"),
+    "northlands": ChannelCommand("northlands"),
+    "smile": EmoteCommand("smile"),
+    "nod": EmoteCommand("nod"),
+    "bow": EmoteCommand("bow"),
+    "wave": EmoteCommand("wave"),
+    "laugh": EmoteCommand("laugh"),
+    "chuckle": EmoteCommand("chuckle"),
+    "snicker": EmoteCommand("snicker"),
+    "giggle": EmoteCommand("giggle"),
+    "sigh": EmoteCommand("sigh"),
+    "shrug": EmoteCommand("shrug"),
+    "frown": EmoteCommand("frown"),
+    "glare": EmoteCommand("glare"),
+    "wink": EmoteCommand("wink"),
+    "smirk": EmoteCommand("smirk"),
+    "cheer": EmoteCommand("cheer"),
+    "grin": EmoteCommand("grin"),
+    "scowl": EmoteCommand("scowl"),
+    "poke": EmoteCommand("poke"),
+    "point": EmoteCommand("point"),
+    "nod_slow": EmoteCommand("nod_slow"),
     "shake_head": EmoteCommand("shake_head"),
-    "clap":       EmoteCommand("clap"),
-    "crossarms":  EmoteCommand("crossarms"),
-    "squint":     EmoteCommand("squint"),
-    "torex":      EmoteCommand("torex"),
-
-    "exits":     ExitsCommand(),
-
-    "i":         InventoryCommand(),
+    "clap": EmoteCommand("clap"),
+    "crossarms": EmoteCommand("crossarms"),
+    "squint": EmoteCommand("squint"),
+    "torex": EmoteCommand("torex"),
+    "exits": ExitsCommand(),
+    "i": InventoryCommand(),
     "inventory": InventoryCommand(),
-    "get":       GetCommand(),
-    "drop":      DropCommand(),
-
-    "score":     ScoreCommand(),
-    "hp":        HpCommand(),
-    "who":       WhoCommand(),
-    "smell":     SmellCommand(),
-    "listen":    ListenCommand(),
-    "search":    SearchCommand(),
-    "time":      TimeCommand(),
-    "finger":    FingerCommand(),
-    "level":     LevelCommand(),
-    "powers":    PowersCommand(),
-
-    "attack":    AttackCommand(),
-    "flee":      FleeCommand(),
-
-    "salute":    PowerCommand("salute"),
+    "get": GetCommand(),
+    "drop": DropCommand(),
+    "score": ScoreCommand(),
+    "hp": HpCommand(),
+    "who": WhoCommand(),
+    "smell": SmellCommand(),
+    "listen": ListenCommand(),
+    "search": SearchCommand(),
+    "time": TimeCommand(),
+    "finger": FingerCommand(),
+    "level": LevelCommand(),
+    "powers": PowersCommand(),
+    "attack": AttackCommand(),
+    "flee": FleeCommand(),
+    "salute": PowerCommand("salute"),
     "magelight": PowerCommand("magelight"),
-    "prayer":    PowerCommand("prayer"),
-    "flourish":  PowerCommand("flourish"),
-    "slip":      PowerCommand("slip"),
-    "whittle":   PowerCommand("whittle"),
-    "headbutt":  PowerCommand("headbutt"),
-    "trample":   PowerCommand("trample"),
-    "pray":      PowerCommand("pray"),
-    
+    "prayer": PowerCommand("prayer"),
+    "flourish": PowerCommand("flourish"),
+    "slip": PowerCommand("slip"),
+    "whittle": PowerCommand("whittle"),
+    "headbutt": PowerCommand("headbutt"),
+    "trample": PowerCommand("trample"),
+    "pray": PowerCommand("pray"),
     "maketorch": PowerCommand("maketorch"),
     "hawkwares": PowerCommand("hawkwares"),
-    
-    "subjects":  SubjectsCommand(),
-    "write":     WriteCommand(),
-    "erase":     EraseCommand(),
-    "read":      ReadCommand(),
+    "beautician": PowerCommand("beautician"),
+    "subjects": SubjectsCommand(),
+    "write": WriteCommand(),
+    "erase": EraseCommand(),
+    "read": ReadCommand(),
 }
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _parse(raw: str) -> tuple[str, list[str]]:
     """Split raw input into (verb, args)."""
@@ -283,6 +290,7 @@ def _trigger_aggro(conn, character, room_id: int) -> None:
 # Game loop
 # ---------------------------------------------------------------------------
 
+
 def run_game_loop_for_client(character_id: int, session) -> None:
     """
     Main game loop for a networked client session.
@@ -334,7 +342,7 @@ def run_game_loop_for_client(character_id: int, session) -> None:
                     with conn.cursor() as cur:
                         cur.execute(
                             "UPDATE characters SET pending_look = FALSE WHERE id = %s",
-                            (character_id,)
+                            (character_id,),
                         )
                     conn.commit()
 
@@ -392,16 +400,20 @@ def run_game_loop_for_client(character_id: int, session) -> None:
                     required_unguilded = exit_data.get("required_unguilded", False)
 
                     if required_class or required_unguilded:
-                        is_unguilded = character.char_class is None or character.char_class == "Immigrant"
+                        is_unguilded = (character.char_class in (None, "", "Immigrant"))
+
                         passed = False
+
                         if required_unguilded and is_unguilded:
                             passed = True
+
                         if required_class and character.char_class == required_class:
                             passed = True
-                        if not passed:
-                            session.send("A guild warden blocks your path. Members only.\n")
-                            continue
 
+                        if not passed:
+                            session.send("A guild warden blocks your path.\n")
+                            continue
+                        
                     old_room = room.id
                     new_room = exit_data["to_location"]
 
@@ -422,7 +434,7 @@ def run_game_loop_for_client(character_id: int, session) -> None:
                     with conn.cursor() as cur:
                         cur.execute(
                             "UPDATE characters SET room_entered_at = NOW() WHERE id = %s",
-                            (character.id,)
+                            (character.id,),
                         )
 
                     # Aggro check
@@ -466,7 +478,9 @@ def run_game_loop_for_client(character_id: int, session) -> None:
 
                 script = room_scripts.get_script(room.script_key)
                 if script and hasattr(script, "on_command"):
-                    consumed = script.on_command(character, room, verb, args, conn, session)
+                    consumed = script.on_command(
+                        character, room, verb, args, conn, session
+                    )
                     if consumed:
                         continue
 
@@ -482,9 +496,7 @@ def run_game_loop_for_client(character_id: int, session) -> None:
                 # Unknown
                 # -------------------------------------------------------
 
-                session.send(
-                    f"Unknown command '{verb}'. Try: look, north, quit.\n"
-                )
+                session.send(f"Unknown command '{verb}'. Try: look, north, quit.\n")
 
     finally:
 

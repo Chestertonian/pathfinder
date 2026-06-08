@@ -43,7 +43,7 @@ CHANNELS = {
     "cleric":     ("Cleric",     _check_class("cleric"),      "cyan"),
     "thief":      ("Thief",      _check_class("thief"),       "cyan"),
     "ranger":     ("Ranger",     _check_class("ranger"),      "cyan"),
-    "staff":      ("Staff",      _check_staff,                "white"),
+    "staff":      ("Staff",      _check_staff,                "purple"),
     "council":    ("Council",    _check_council,              "bright_yellow"),
 }
 

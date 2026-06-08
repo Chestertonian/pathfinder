@@ -27,6 +27,7 @@ import powers.handlers.slip as slip_handler
 import powers.handlers.pray as pray_handler
 import powers.handlers.maketorch as maketorch_handler
 import powers.handlers.hawkwares as hawkwares_handler
+import powers.handlers.beautician as beautician_handler
 import powers.handlers.flourish as flourish_handler
 '''import powers.handlers.magelight as magelight_handler
 import powers.handlers.prayer as prayer_handler
@@ -49,6 +50,7 @@ POWER_HANDLERS = {
     "pray":      pray_handler,
     "maketorch": maketorch_handler,
     "hawkwares": hawkwares_handler,
+    "beautician":  beautician_handler,
     "flourish":  flourish_handler,
 }
 '''    "magelight": magelight_handler,
