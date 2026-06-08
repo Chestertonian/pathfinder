@@ -140,14 +140,17 @@ class InventoryCommand:
                 ORDER BY it.type ASC, it.name ASC
             """, (character.id,))
             rows = cur.fetchall()
-
-        equipped_items = {}   # slot -> (name, weight)
-        carried_items = []    # (name, weight, quantity)
-        coin_items = []       # (name, quantity)
+            
+        equipped_items = {}
+        carried_items = []
+        coin_items = []
+        clothing_items = [] 
 
         for name, item_type, weight, equipped, equipped_slot, quantity, template_id in rows:
             if template_id in self.COIN_TEMPLATE_IDS:
                 coin_items.append((name, quantity))
+            elif item_type == 'clothing' and equipped:
+                clothing_items.append((name,)) 
             elif equipped and equipped_slot:
                 equipped_items[equipped_slot] = (name, weight)
             else:
@@ -183,6 +186,13 @@ class InventoryCommand:
             for name, quantity in coin_items:
                 label = name if quantity == 1 else name + 's'
                 lines.append(f"    {quantity} {label}")
+            lines.append("")
+        
+        # --- Clothing section ---     
+        if clothing_items:
+            lines.append("  Wearing:")
+            for (name,) in clothing_items:
+                lines.append(f"    {name}")
             lines.append("")
 
         lines.append("-" * 40)

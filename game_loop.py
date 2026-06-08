@@ -188,6 +188,9 @@ COMMANDS = {
     "maketorch": PowerCommand("maketorch"),
     "hawkwares": PowerCommand("hawkwares"),
     "beautician": PowerCommand("beautician"),
+    "tailor":   PowerCommand("tailor"),
+    "ordernumber": PowerCommand("ordernumber"),
+    "dyecast":   PowerCommand("dyecast"),
     "subjects": SubjectsCommand(),
     "write": WriteCommand(),
     "erase": EraseCommand(),
@@ -199,6 +202,9 @@ COMMANDS = {
     "withdraw": WithdrawCommand(),
     "deposit":  DepositCommand(),
     "wealth":   WealthCommand(),
+    "list":     ListCommand(),
+    "buy":      BuyCommand(),
+    "sell":     SellCommand(),
     
 }
 

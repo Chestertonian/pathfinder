@@ -29,6 +29,9 @@ import powers.handlers.maketorch as maketorch_handler
 import powers.handlers.hawkwares as hawkwares_handler
 import powers.handlers.beautician as beautician_handler
 import powers.handlers.flourish as flourish_handler
+import powers.handlers.ordernumber as ordernumber_handler
+import powers.handlers.dyecast as dyecast_handler
+import powers.handlers.tailor as tailor_handler
 '''import powers.handlers.magelight as magelight_handler
 import powers.handlers.prayer as prayer_handler
 import powers.handlers.whittle as whittle_handler
@@ -52,6 +55,9 @@ POWER_HANDLERS = {
     "hawkwares": hawkwares_handler,
     "beautician":  beautician_handler,
     "flourish":  flourish_handler,
+    "tailor":    tailor_handler,
+    "dyecast":   dyecast_handler,
+    "ordernumber": ordernumber_handler,
 }
 '''    "magelight": magelight_handler,
     "prayer":    prayer_handler,
