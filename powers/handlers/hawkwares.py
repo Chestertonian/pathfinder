@@ -70,7 +70,6 @@ def execute(character, target, args, conn, session) -> None:
         conn,
         event_type="hawk",
         sender_id=character.id,
-        recipient_character_id=None,
         message=final_message,
     )
 

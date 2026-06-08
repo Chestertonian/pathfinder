@@ -61,13 +61,13 @@ from commands.setstat import SetstatCommand
 from commands.promote import PromoteCommand, DemoteCommand
 
 from commands.items import GetCommand, DropCommand, InventoryCommand
+from commands.equipment import EquipCommand, EqCommand, RemoveCommand, UnequipCommand
 
-from commands.bulletinboard import (
-    WriteCommand,
-    SubjectsCommand,
-    ReadCommand,
-    EraseCommand,
-)
+from commands.economy import WithdrawCommand, DepositCommand, WealthCommand
+from commands.shop import BuyCommand, SellCommand, ListCommand
+
+from commands.bulletinboard import WriteCommand, SubjectsCommand, ReadCommand, EraseCommand
+
 
 # ---------------------------------------------------------------------------
 # Direction aliases
@@ -192,6 +192,14 @@ COMMANDS = {
     "write": WriteCommand(),
     "erase": EraseCommand(),
     "read": ReadCommand(),
+    "eq":   EqCommand(),
+    "equip": EquipCommand(),
+    "remove": RemoveCommand(),
+    "unequip": UnequipCommand(),
+    "withdraw": WithdrawCommand(),
+    "deposit":  DepositCommand(),
+    "wealth":   WealthCommand(),
+    
 }
 
 
@@ -396,11 +404,11 @@ def run_game_loop_for_client(character_id: int, session) -> None:
                         continue
 
                     # Access check
-                    required_class = exit_data.get("required_class")
-                    required_unguilded = exit_data.get("required_unguilded", False)
+                    required_class = exit_data["required_class"]
+                    required_unguilded = exit_data["required_unguilded"]
 
                     if required_class or required_unguilded:
-                        is_unguilded = (character.char_class in (None, "", "Immigrant"))
+                        is_unguilded = (character.char_class.capitalize().strip() in (None, "", "Immigrant", "immigrant"))
 
                         passed = False
 

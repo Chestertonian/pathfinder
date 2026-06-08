@@ -210,7 +210,7 @@ def should_deliver(character, event: Event) -> bool:
     # Merchant announcements
     # -------------------------------------------------------
     if event.event_type == "hawk":
-        return event.sender_id == character.id
+        return True
 
     # -------------------------------------------------------
     # System messages

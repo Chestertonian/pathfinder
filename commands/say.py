@@ -1,5 +1,7 @@
 # commands/say.py
 
+import re
+
 from models import BroadcastMessage
 from events import emit_event
 from output import blank, console, print_error, print_flavor, print_success, prompt
@@ -10,8 +12,17 @@ class SayCommand:
         if not args:
             return "Say what?"
 
-        text = " ".join(args)
-        text=text.capitalize()
+
+
+        text = " ".join(args).strip()
+
+        # Capitalize start of string and start of sentences.
+        text = re.sub(
+            r'(^|[.!?]\s+)([a-z])',
+            lambda m: m.group(1) + m.group(2).upper(),
+            text
+        )
+
         if not text.endswith(("!", "?", ".")):
             text += "."
 

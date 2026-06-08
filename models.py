@@ -90,7 +90,7 @@ class Room:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT to_location, is_locked, is_secret, cost
+                SELECT to_location, is_locked, is_secret, cost, required_class, required_unguilded
                 FROM exits
                 WHERE from_location = %s AND direction = %s
                 """,
@@ -104,6 +104,8 @@ class Room:
                 "is_locked":   row[1],
                 "is_secret":   row[2],
                 "cost":        row[3],
+                "required_class": row[4],
+                "required_unguilded": row[5],
             }
 
     def get_items(self, conn) -> "list[Item]":

@@ -121,35 +121,70 @@ class DropCommand:
 
 
 class InventoryCommand:
+    SLOT_ORDER = [
+        'weapon', 'offhand', 'head', 'neck', 'back',
+        'chest', 'arms', 'legs', 'feet', 'ring'
+    ]
+
+    COIN_TEMPLATE_IDS = {4, 5, 6, 7}  # copper, silver, gold, sovereign
+
     def execute(self, character, conn, args, session):
         with conn.cursor() as cur:
-            cur.execute(
-                """
-                SELECT it.name, it.type, it.weight, ii.equipped
+            cur.execute("""
+                SELECT it.name, it.type, it.weight, ii.equipped,
+                       ii.equipped_slot, ii.quantity, ii.item_template_id
                 FROM item_instances ii
                 JOIN item_templates it ON it.id = ii.item_template_id
                 WHERE ii.owner_type = 'character'
-                  AND ii.owner_id   = %s
+                  AND ii.owner_id = %s
                 ORDER BY it.type ASC, it.name ASC
-                """,
-                (character.id,),
-            )
+            """, (character.id,))
             rows = cur.fetchall()
 
+        equipped_items = {}   # slot -> (name, weight)
+        carried_items = []    # (name, weight, quantity)
+        coin_items = []       # (name, quantity)
+
+        for name, item_type, weight, equipped, equipped_slot, quantity, template_id in rows:
+            if template_id in self.COIN_TEMPLATE_IDS:
+                coin_items.append((name, quantity))
+            elif equipped and equipped_slot:
+                equipped_items[equipped_slot] = (name, weight)
+            else:
+                carried_items.append((name, weight, quantity))
+
         lines = []
-        lines.append("-" * 40)  # CHANGED: was rule()
-        lines.append("")
-
-        if not rows:
-            lines.append("  You are carrying nothing.")
-        else:
-            for name, item_type, weight, equipped in rows:
-                # CHANGED: plain string formatting instead of multi-part console.print
-                equip_str = "  [equipped]" if equipped else ""
-                lines.append(f"  {name:<30} {item_type:<12} {weight} lb{equip_str}")
-
-        lines.append("")
         lines.append("-" * 40)
+        lines.append("")
 
+        # --- Equipped section ---
+        if equipped_items:
+            lines.append("  Equipped:")
+            for slot in self.SLOT_ORDER:
+                if slot in equipped_items:
+                    name, weight = equipped_items[slot]
+                    lines.append(f"    [{slot.capitalize():<8}]  {name}")
+            lines.append("")
+
+        # --- Carried section ---
+        if carried_items:
+            lines.append("  Carrying:")
+            for name, weight, quantity in carried_items:
+                qty_str = f" (x{quantity})" if quantity > 1 else ""
+                lines.append(f"    {name:<30} {weight} lb{qty_str}")
+            lines.append("")
+        elif not equipped_items and not coin_items:
+            lines.append("  You are carrying nothing.")
+            lines.append("")
+
+        # --- Coins section ---
+        if coin_items:
+            lines.append("  Coins:")
+            for name, quantity in coin_items:
+                label = name if quantity == 1 else name + 's'
+                lines.append(f"    {quantity} {label}")
+            lines.append("")
+
+        lines.append("-" * 40)
         session.send("\n".join(lines) + "\n")
         return None

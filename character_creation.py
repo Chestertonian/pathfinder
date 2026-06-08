@@ -12,7 +12,9 @@ import hashlib
 import random
 import secrets
 
+from output import to_ansi
 from db import get_connection
+from events import emit_event
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -371,4 +373,11 @@ def run_character_creation(session) -> int | None:
     )
 
     session.send(f"\n{name} steps into the world. Good luck.\n\n")
-    return character_id
+    
+    emitted=to_ansi(f"{' '*10} --- {' '*10}\n {' '*10} {name} the New Player arrives. \n {' '*10} --- {' '*10}\n")
+    emit_event(
+                        event_type="global",
+                        sender_id=0,
+                        message=emitted,
+                    )
+    return character_id 
