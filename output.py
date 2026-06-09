@@ -91,12 +91,7 @@ def rule(title: str = "") -> None:
 def blank() -> None:
     """Print an empty line."""
     console.print()
-
-
-# ---------------------------------------------------------------------------
-# Input helper
-# ---------------------------------------------------------------------------
-
+    
 def prompt(text: str) -> str:
     """
     Input prompt. Returns the stripped string the player typed.
@@ -108,6 +103,28 @@ def prompt(text: str) -> str:
     return console.input(f"[bold white]{text}[/bold white] ").strip()
 
 
+def _get_item_color(conn, item_instance_id):
+    """Single source of truth for item color lookup."""
+
+    with conn.cursor() as cur:
+        cur.execute("""
+            SELECT
+                ii.color_override,
+                it.color
+            FROM item_instances ii
+            JOIN item_templates it
+                ON it.id = ii.item_template_id
+            WHERE ii.id = %s
+        """, (item_instance_id,))
+
+        row = cur.fetchone()
+
+        if not row:
+            return None
+
+        color_override, default_color = row
+
+        return color_override or default_color
 
 def colorize(name, color=None):
     """
@@ -117,3 +134,4 @@ def colorize(name, color=None):
     if color:
         return to_ansi(f"[{color}]{name}[/{color}]")
     return name
+

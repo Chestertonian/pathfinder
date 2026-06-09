@@ -24,6 +24,7 @@ from events import emit_event
 from commands.kick import register_session, unregister_session
 
 from commands.look import LookCommand
+from commands.read import ReadCommand
 from commands.smell import SmellCommand
 from commands.listen import ListenCommand
 from commands.search import SearchCommand
@@ -67,7 +68,9 @@ from commands.give import GiveCommand
 from commands.economy import WithdrawCommand, DepositCommand, WealthCommand
 from commands.shop import BuyCommand, SellCommand, ListCommand
 
-from commands.bulletinboard import WriteCommand, SubjectsCommand, ReadCommand, EraseCommand
+from commands.bulletinboard import WriteCommand, SubjectsCommand, EraseCommand
+
+from commands.scribe import ScribeCommand
 
 
 # ---------------------------------------------------------------------------
@@ -189,12 +192,14 @@ COMMANDS = {
     "maketorch": PowerCommand("maketorch"),
     "hawkwares": PowerCommand("hawkwares"),
     "beautician": PowerCommand("beautician"),
+    "makeparchment": PowerCommand("makeparchment"),
     "tailor":   PowerCommand("tailor"),
     "ordernumber": PowerCommand("ordernumber"),
     "dyecast":   PowerCommand("dyecast"),
     "subjects": SubjectsCommand(),
     "write": WriteCommand(),
     "erase": EraseCommand(),
+    "scribe": ScribeCommand(),
     "read": ReadCommand(),
     "eq":   EqCommand(),
     "equip": EquipCommand(),

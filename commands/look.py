@@ -5,7 +5,7 @@ from collections import Counter
 
 from commands.base import Command
 from models import Item, NpcInstance
-from output import to_ansi
+from output import to_ansi, colorize, _get_item_color
 
 from events import emit_event
 
@@ -16,6 +16,11 @@ IRREGULAR_PLURALS = {
     "elf": "elves",
     # add as encountered
 }
+
+SLOT_ORDER = [
+    'weapon', 'offhand', 'head', 'neck', 'back',
+    'chest', 'arms', 'legs', 'feet', 'ring'
+]
 
 
 class LookCommand(Command):
@@ -35,12 +40,13 @@ class LookCommand(Command):
         # ── LOOK AT PLAYER IN ROOM ────────────────────────────────────────
         players = _get_players_in_room(conn, room.id, exclude_id=character.id)
         match = _find_by_name(target_name, players)
-        print(match)
+
 
         if match:
             _emit_look_event(conn, character, room, match["name"])
             condition = _health_condition(match["hp"], match["hp_max"])
-            return f"\n{match["description"]}\n{match["name"]} {condition}.\n"
+            gear = _describe_player_gear(conn, match["id"])
+            return f"\n{match['description']}\n{match['name']} {condition}.\n{gear}"
 
         # ── LOOK AT NPC ───────────────────────────────────────────────────
         npcs = room.get_npcs(conn)
@@ -57,7 +63,7 @@ class LookCommand(Command):
 
         if match:
             _emit_look_event(conn, character, room, match.name)
-            return f"\n{match.description}\n"
+            return f"\n{_get_item_description(conn, match)}\n"
 
         # ── LOOK AT ITEM IN INVENTORY ─────────────────────────────────────
         inventory = Item.get_inventory(conn, character.id)
@@ -65,7 +71,7 @@ class LookCommand(Command):
 
         if match:
             _emit_look_event(conn, character, room, match.name)
-            return f"\n{match.description}\n"
+            return f"\n{_get_item_description(conn, match)}\n"
 
         # ── NOT FOUND ─────────────────────────────────────────────────────
         return f"  You don't see '{target_name}' here."
@@ -115,9 +121,10 @@ def _describe_room(character, conn) -> str:
                 lines.append(f"{_count_word(count)} {_pluralize(name).title()}.")
 
     if items:
-        for item in items:
-            lines.append(f"{item.name}.")
-        lines.append("\n")
+            for item in items:
+                color = _get_item_color(conn, item.id)
+                lines.append(f"{colorize(item.name, color)}.")
+            lines.append("\n")
 
     if exits:
         exit_names = [ex["direction"].lower() for ex in exits]
@@ -227,3 +234,81 @@ def _get_boards_in_room(conn, room_id: int) -> list[dict]:
         """, (room_id,))
         rows = cur.fetchall()
     return [{"id": row[0], "name": row[1], "post_count": row[2]} for row in rows]
+
+
+def _describe_player_gear(conn, target_id) -> str:
+    """
+    Returns a formatted string of a player's equipped gear and clothing.
+    """
+    with conn.cursor() as cur:
+        # Armor, weapons, and clothing — all in one query now
+        cur.execute("""
+            SELECT ii.equipped_slot, it.name, ii.id,
+                   COALESCE(ii.color_override, it.color) as color,
+                   it.type, ct.order_number
+            FROM item_instances ii
+            JOIN item_templates it ON it.id = ii.item_template_id
+            LEFT JOIN clothing_templates ct ON ct.item_template_id = ii.item_template_id
+            WHERE ii.owner_type = 'character'
+              AND ii.owner_id = %s
+              AND ii.equipped = TRUE
+            ORDER BY ct.order_number ASC NULLS LAST
+        """, (target_id,))
+        rows = cur.fetchall()
+
+    if not rows:
+        return ""
+
+    equipped = {}
+    clothing_rows = []
+
+    for slot, name, instance_id, color, item_type, order_number in rows:
+        if item_type == 'clothing':
+            clothing_rows.append((name, color))
+        elif slot:
+            equipped[slot] = (name, color)
+
+    lines = []
+
+    if equipped:
+        lines.append("\n  Equipment:")
+        for slot in SLOT_ORDER:
+            if slot in equipped:
+                name, color = equipped[slot]
+                label = slot.capitalize().ljust(8)
+                lines.append(f"    [{label}]  {colorize(name, color)}")
+
+    if clothing_rows:
+        lines.append("\n  Wearing:")
+        for name, color in clothing_rows:
+            lines.append(f"    {colorize(name, color)}")
+
+    return "\n".join(lines) + "\n"
+
+
+
+
+def _get_item_description(conn, item) -> str:
+    """
+    Returns alt_description if the item has been written on,
+    otherwise returns the standard description.
+    """
+    with conn.cursor() as cur:
+        # Check if this instance has been written on
+        cur.execute(
+            "SELECT 1 FROM written_items WHERE item_instance_id = %s",
+            (item.instance_id,),
+        )
+        is_written = cur.fetchone() is not None
+
+        if is_written:
+            # Fetch alt_description from item_templates
+            cur.execute(
+                "SELECT alt_description FROM item_templates WHERE id = %s",
+                (item.template_id,),
+            )
+            row = cur.fetchone()
+            if row and row[0]:
+                return row[0]
+
+    return item.description

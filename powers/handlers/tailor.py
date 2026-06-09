@@ -24,16 +24,16 @@ def execute(character, target, args, conn, session):
     with conn.cursor() as cur:
         cur.execute("""
             INSERT INTO item_templates
-                (name, type, description, weight, value, is_takeable, is_droppable)
-            VALUES (%s, 'clothing', %s, 1, 0, TRUE, TRUE)
+                (name, type, description, weight, value, is_takeable, is_droppable, is_dyeable)
+            VALUES (%s, 'clothing', %s, 1, 0, TRUE, TRUE, TRUE)
             RETURNING id
         """, (item_name, description))
         template_id = cur.fetchone()[0]
 
         cur.execute("""
             INSERT INTO clothing_templates
-                (item_template_id, order_number, color)
-            VALUES (%s, 8, NULL)
+                (item_template_id, order_number)
+            VALUES (%s, 8)
         """, (template_id,))
 
         cur.execute("""

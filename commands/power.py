@@ -32,6 +32,7 @@ import powers.handlers.flourish as flourish_handler
 import powers.handlers.ordernumber as ordernumber_handler
 import powers.handlers.dyecast as dyecast_handler
 import powers.handlers.tailor as tailor_handler
+import powers.handlers.makeparchment as makeparchment_handler
 '''import powers.handlers.magelight as magelight_handler
 import powers.handlers.prayer as prayer_handler
 import powers.handlers.whittle as whittle_handler
@@ -58,6 +59,7 @@ POWER_HANDLERS = {
     "tailor":    tailor_handler,
     "dyecast":   dyecast_handler,
     "ordernumber": ordernumber_handler,
+    "makeparchment": makeparchment_handler,
 }
 '''    "magelight": magelight_handler,
     "prayer":    prayer_handler,

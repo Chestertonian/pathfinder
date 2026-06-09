@@ -3,7 +3,7 @@ commands/items.py — GetCommand, DropCommand, InventoryCommand
 """
 
 from events import emit_event
-from output import to_ansi
+from output import to_ansi, colorize, _get_item_color
 
 
 class GetCommand:
@@ -20,7 +20,7 @@ class GetCommand:
                 FROM item_instances ii
                 JOIN item_templates it ON it.id = ii.item_template_id
                 WHERE ii.owner_type = 'location'
-                  AND ii.owner_id   = %s
+                  AND ii.owner_id = %s
                   AND LOWER(it.name) LIKE %s
                 ORDER BY ii.id ASC
                 LIMIT 1
@@ -36,6 +36,8 @@ class GetCommand:
 
             if not is_takeable:
                 return "You can't get that."
+
+            color = _get_item_color(conn, instance_id)
 
             cur.execute(
                 """
@@ -54,12 +56,11 @@ class GetCommand:
             event_type="room",
             sender_id=character.id,
             location_id=character.location_id,
-            message=f"{character.name} picks up {item_name}.",
-            color="grey54",
+            message=f"{character.name} picks up {colorize(item_name, color)}.",
             use_border=False,
         )
 
-        session.send(f"You pick up {item_name}.\n")  # CHANGED
+        session.send(f"You pick up {colorize(item_name, color)}.\n")
         return None
 
 
@@ -77,7 +78,7 @@ class DropCommand:
                 FROM item_instances ii
                 JOIN item_templates it ON it.id = ii.item_template_id
                 WHERE ii.owner_type = 'character'
-                  AND ii.owner_id   = %s
+                  AND ii.owner_id = %s
                   AND LOWER(it.name) LIKE %s
                 ORDER BY ii.id ASC
                 LIMIT 1
@@ -93,6 +94,8 @@ class DropCommand:
 
             if not is_droppable:
                 return "You can't drop that."
+
+            color = _get_item_color(conn, instance_id)
 
             cur.execute(
                 """
@@ -112,109 +115,147 @@ class DropCommand:
             event_type="room",
             sender_id=character.id,
             location_id=character.location_id,
-            message=f"{character.name} drops {item_name}.",
-            color="grey54",
+            message=f"{character.name} drops {colorize(item_name, color)}.",
             use_border=False,
         )
 
-        session.send(f"You drop {item_name}.\n")  # CHANGED
+        session.send(f"You drop {colorize(item_name, color)}.\n")
         return None
-
 
 class InventoryCommand:
     SLOT_ORDER = [
         'weapon', 'offhand', 'head', 'neck', 'back',
-        'chest', 'arms', 'legs', 'feet', 'ring'
+        'chest', 'arms', 'ring', 'legs', 'feet'
     ]
 
-    COIN_TEMPLATE_IDS = {4, 5, 6, 7}  # copper, silver, gold, sovereign
+    COIN_TEMPLATE_IDS = {4, 5, 6, 7}
 
     def execute(self, character, conn, args, session):
         with conn.cursor() as cur:
             cur.execute("""
-                SELECT it.name, it.type, it.weight, ii.equipped,
-                       ii.equipped_slot, ii.quantity, ii.item_template_id
+                SELECT
+                    it.name,
+                    it.type,
+                    it.weight,
+                    ii.equipped,
+                    ii.equipped_slot,
+                    ii.quantity,
+                    ii.item_template_id,
+                    ii.id
                 FROM item_instances ii
-                JOIN item_templates it ON it.id = ii.item_template_id
+                JOIN item_templates it
+                    ON it.id = ii.item_template_id
                 WHERE ii.owner_type = 'character'
                   AND ii.owner_id = %s
                 ORDER BY it.type ASC, it.name ASC
             """, (character.id,))
+
             rows = cur.fetchall()
-            
-            
+
         equipped_items = {}
         carried_items = []
+        clothing_items = []
         coin_items = []
-        clothing_items= []
 
-        for name, item_type, weight, equipped, equipped_slot, quantity, template_id in rows:
+        for (
+            name,
+            item_type,
+            weight,
+            equipped,
+            equipped_slot,
+            quantity,
+            template_id,
+            instance_id
+        ) in rows:
+
             if template_id in self.COIN_TEMPLATE_IDS:
                 coin_items.append((name, quantity))
-            elif item_type == 'clothing' and equipped:
-                clothing_items.append((name,)) 
-            elif equipped and equipped_slot:
-                equipped_items[equipped_slot] = (name, weight)
-            else:
-                carried_items.append((name, weight, quantity))
+                continue
 
-        # After the main rows query, fetch equipped clothing with color
-        with conn.cursor() as cur:
-            cur.execute("""
-                SELECT it.name, ct.color
-                FROM item_instances ii
-                JOIN item_templates it ON it.id = ii.item_template_id
-                JOIN clothing_templates ct ON ct.item_template_id = ii.item_template_id
-                WHERE ii.owner_type = 'character'
-                AND ii.owner_id = %s
-                AND ii.equipped = TRUE
-                ORDER BY ct.order_number ASC
-            """, (character.id,))
-            clothing_items = [(name, color) for name, color in cur.fetchall()]
-            
-            
+            color = _get_item_color(conn, instance_id)
+
+            if item_type == 'clothing' and equipped:
+                clothing_items.append((name, color))
+                continue
+
+            if equipped and equipped_slot:
+                equipped_items[equipped_slot] = {
+                    "name": name,
+                    "color": color,
+                    "weight": weight,
+                    "quantity": quantity
+                }
+                continue
+
+            carried_items.append({
+                "name": name,
+                "color": color,
+                "weight": weight,
+                "quantity": quantity
+            })
+
         lines = []
         lines.append("-" * 40)
         lines.append("")
 
-        # --- Equipped section ---
+        # Equipped
         if equipped_items:
             lines.append("  Equipped:")
+
             for slot in self.SLOT_ORDER:
-                if slot in equipped_items:
-                    name, weight = equipped_items[slot]
-                    lines.append(f"    [{slot.capitalize():<8}]  {name}")
+                item = equipped_items.get(slot)
+                if not item:
+                    continue
+
+                lines.append(
+                    f"    [{slot.capitalize():<8}]  "
+                    f"{colorize(item['name'], item['color'])}"
+                )
+
             lines.append("")
 
-        # --- Carried section ---
+        # Carrying
         if carried_items:
             lines.append("  Carrying:")
-            for name, weight, quantity in carried_items:
-                qty_str = f" (x{quantity})" if quantity > 1 else ""
-                lines.append(f"    {name:<30} {weight} lb{qty_str}")
+
+            for item in carried_items:
+                qty_str = (
+                    f" (x{item['quantity']})"
+                    if item['quantity'] > 1
+                    else ""
+                )
+
+                lines.append(
+                    f"    {colorize(item['name'], item['color'])}"
+                    f"{qty_str}"
+                )
+
             lines.append("")
-        elif not equipped_items and not coin_items:
+
+        elif not equipped_items and not clothing_items and not coin_items:
             lines.append("  You are carrying nothing.")
             lines.append("")
 
-        # --- Coins section ---
+        # Coins
         if coin_items:
             lines.append("  Coins:")
+
             for name, quantity in coin_items:
-                label = name if quantity == 1 else name + 's'
+                label = name if quantity == 1 else f"{name}s"
                 lines.append(f"    {quantity} {label}")
+
             lines.append("")
-        
-        # --- Clothing section ---
+
+        # Clothing (now fully instance-based color)
         if clothing_items:
             lines.append("  Wearing:")
+
             for name, color in clothing_items:
-                if color:
-                    lines.append(to_ansi(f"[{color}]    {name}[/{color}]"))
-                else:
-                    lines.append(f"    {name}")
+                lines.append(f"    {colorize(name, color)}")
+
             lines.append("")
 
         lines.append("-" * 40)
+
         session.send("\n".join(lines) + "\n")
         return None

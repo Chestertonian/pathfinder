@@ -1,5 +1,3 @@
-# powers/handlers/dyecast.py
-
 from output import to_ansi
 
 TAILOR_ROOM_ID = 250
@@ -15,10 +13,13 @@ VALID_COLORS = {
 def _get_clothing_in_inventory(conn, character_id, item_name):
     with conn.cursor() as cur:
         cur.execute("""
-            SELECT ii.id, ii.item_template_id, it.name
+            SELECT
+                ii.id,
+                ii.item_template_id,
+                it.name,
+                it.is_dyeable
             FROM item_instances ii
             JOIN item_templates it ON it.id = ii.item_template_id
-            JOIN clothing_templates ct ON ct.item_template_id = ii.item_template_id
             WHERE ii.owner_type = 'character'
               AND ii.owner_id = %s
               AND LOWER(it.name) LIKE LOWER(%s)
@@ -49,15 +50,20 @@ def execute(character, target, args, conn, session):
         session.send(f"You don't have '{item_name}' in your inventory.\n")
         return
 
-    instance_id, template_id, name = row
+    instance_id, template_id, name, is_dyeable = row
+
+    if not is_dyeable:
+        session.send(f"{name} cannot be dyed.\n")
+        return
 
     with conn.cursor() as cur:
         cur.execute("""
-            UPDATE clothing_templates
-            SET color = %s
-            WHERE item_template_id = %s
-        """, (color, template_id))
+            UPDATE item_instances
+            SET color_override = %s
+            WHERE id = %s
+        """, (color, instance_id))
 
     conn.commit()
+
     colored_name = to_ansi(f"[{color}]{name}[/{color}]")
     session.send(f"{name} is now dyed {color}. It appears as: {colored_name}\n")

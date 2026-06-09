@@ -240,6 +240,7 @@ class Item:
     def __init__(self, row: dict):
         self.instance_id  = row["instance_id"]
         self.template_id  = row["template_id"]
+        self.item_template_id = row["template_id"]
         self.name         = row["name"]
         self.type         = row["type"]
         self.description  = row["description"]
