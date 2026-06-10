@@ -19,3 +19,4 @@ class Event:
     style: str
     use_border: bool
     created_at: Optional[datetime] = None  # ADDED
+    guild: str = None

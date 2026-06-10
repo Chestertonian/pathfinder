@@ -16,6 +16,7 @@ from output import to_ansi
 from db import get_connection
 from events import emit_event
 
+
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
@@ -111,6 +112,47 @@ def stat_modifier(value: int) -> int:
 def calculate_starting_resources(stats: dict[str, int]) -> dict[str, int]:
     return {"hp": 25, "power": 25, "endurance": 25}
 
+def prompt_stat_priority(session) -> list[str]:
+    """
+    Ask the player to enter the 6 stats in priority order.
+    Returns a list like ["strength", "dexterity", "constitution", ...]
+    """
+    abbr_to_full = {
+        "STR": "strength", "DEX": "dexterity", "CON": "constitution",
+        "INT": "intelligence", "WIS": "wisdom", "CHA": "charisma"
+    }
+
+    session.send("\nEnter your stat priority from highest to lowest.\n")
+    session.send("Example: STR DEX CON INT WIS CHA\n\n")
+
+    while True:
+        session.send("> ")
+        raw = session.recv() or ""
+        parts = raw.upper().split()
+
+        if len(parts) != 6:
+            session.send("Please enter all 6 stats separated by spaces.\n")
+            continue
+
+        if any(p not in abbr_to_full for p in parts):
+            valid = " ".join(abbr_to_full.keys())
+            session.send(f"Invalid stat name. Valid stats: {valid}\n")
+            continue
+
+        if len(set(parts)) != 6:
+            session.send("No duplicates allowed.\n")
+            continue
+
+        return [abbr_to_full[p] for p in parts]
+
+
+def assign_stats(priority: list[str]) -> dict[str, int]:
+    """
+    Roll 6 values (4d6 drop lowest), sort descending,
+    assign highest to first priority stat and so on.
+    """
+    rolls = sorted([roll_stat() for _ in range(6)], reverse=True)
+    return {stat: rolls[i] for i, stat in enumerate(priority)}
 
 # ---------------------------------------------------------------------------
 # Database helpers — UNCHANGED
@@ -318,19 +360,32 @@ def run_character_creation(session) -> int | None:
 
     # Step 4: Stats
     session.send("\nRolling your stats (4d6, drop lowest)...\n")
+    priority = prompt_stat_priority(session)
+
+    rerolls_used = 0
+    MAX_REROLLS = 20
+
     while True:
-        raw_stats = roll_all_stats()
+        raw_stats = assign_stats(priority)
         final_stats = apply_racial_bonuses(raw_stats, race)
         bonuses = RACIAL_BONUSES[race]
+
         session.send(f"\nBase rolls with {race} racial bonuses applied:\n")
         session.send(display_stat_block(final_stats, bonuses))
         total = sum(final_stats.values())
-        session.send(f"\n  Stat total: {total}\n\n")
+        session.send(f"\n  Stat total: {total}\n")
+        session.send(f"  Rerolls used: {rerolls_used}/{MAX_REROLLS}\n\n")
+
+        if rerolls_used >= MAX_REROLLS:
+            session.send("No rerolls remaining. Stats accepted.\n")
+            break
+
         session.send("  [1] Accept these stats\n  [2] Reroll\n\n")
         choice = prompt_choice(session, ">", ["accept", "reroll"])
         if choice == 0:
             break
 
+        rerolls_used += 1
     # Step 5: Background          CHANGED: was class
     session.send("\nChoose your background:\n\n")
     session.send(display_backgrounds())
@@ -374,10 +429,14 @@ def run_character_creation(session) -> int | None:
 
     session.send(f"\n{name} steps into the world. Good luck.\n\n")
     
-    emitted=to_ansi(f"{' '*10} --- {' '*10}\n {' '*10} {name} the New Player arrives. \n {' '*10} --- {' '*10}\n")
-    emit_event(
-                        event_type="global",
-                        sender_id=0,
-                        message=emitted,
-                    )
+    emitted=to_ansi(f"\n [red]{' '*10} {name} the New Player arrives. [/red]\n")
+
+    with get_connection() as conn:
+        emit_event(
+            conn,
+            event_type="global",
+            sender_id=None,
+            message=emitted,
+        )
+
     return character_id 

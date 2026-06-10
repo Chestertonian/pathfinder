@@ -122,7 +122,7 @@ def _describe_room(character, conn) -> str:
 
     if items:
             for item in items:
-                color = _get_item_color(conn, item.id)
+                color = _get_item_color(conn, item.instance_id)
                 lines.append(f"{colorize(item.name, color)}.")
             lines.append("\n")
 

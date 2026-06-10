@@ -13,4 +13,5 @@ def row_to_event(row) -> Event:
         use_border=row[8],
         style=row[9],           # ← new
         created_at=row[10],     # ← shifted down
+        guild=row[11]
     )

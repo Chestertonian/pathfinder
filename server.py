@@ -98,7 +98,7 @@ class ClientSession:
         except OSError:
             return None
         
-    def kick(self) -> None:                 # ADD THIS
+    def kick(self) -> None:                 
         """Force-close this session."""
         try:
             self.file.close()               # unblocks readline()

@@ -19,26 +19,20 @@ def get_character_by_name(cur, name: str) -> dict | None:
     return {"id": row[0], "name": row[1], "password_hash": row[2], "is_logged_in": row[3]}
 
 
-def run_login(session) -> int | None:        # CHANGED: accepts session
-    """
-    Run the login flow.
-    Returns the character_id on success, or None if the player fails or gives up.
-    """
+def run_login(session) -> int | None:
     session.send("\n=== LOGIN ===\n")
-    session.send("Character name: ")
+    # removed the duplicate "Character name: " that was here
     max_attempts = 3
 
     with get_connection() as conn:
         with conn.cursor() as cur:
 
             for attempt in range(max_attempts):
-                session.send("\n")           # CHANGED: was blank()
-
-                session.send("Character name: ")          # CHANGED: was prompt()
-                name = session.recv()                     # CHANGED: reads from socket
+                session.send("\nCharacter name: ")
+                name = session.recv()
 
                 if not name:
-                    session.send("No name entered.\n")    # CHANGED: was print_error()
+                    session.send("No name entered.\n")
                     continue
 
                 character = get_character_by_name(cur, name)
@@ -52,23 +46,21 @@ def run_login(session) -> int | None:        # CHANGED: accepts session
                     session.send(f"{name.capitalize()} is already in the world.\n")
                     continue
 
-                session.send("Password: ")               # CHANGED: was getpass.getpass()
-                password = session.recv()                # CHANGED: plain text for now
+                session.send("Password: ")
+                password = session.recv()
 
                 if verify_password(password, character["password_hash"]):
-                    session.send("\n")
-                    session.send(f"Welcome back, {character['name'].capitalize()}.\n")
-                    session.send("\n")
+                    session.send(f"\nWelcome back, {character['name'].capitalize()}.\n\n")
 
                     cur.execute(
                         "UPDATE characters SET is_logged_in = TRUE WHERE id = %s",
                         (character["id"],)
                     )
                     conn.commit()
+
                     message = f"{name.capitalize()} enters the realm."
                     border = "-----------------------------"
-                    
-                    total_width = 90                                    # match your textwrap width
+                    total_width = 90
                     border_pad = " " * ((total_width - len(border)) // 2)
                     message_pad = " " * ((total_width - len(message)) // 2)
 
@@ -79,12 +71,11 @@ def run_login(session) -> int | None:        # CHANGED: accepts session
                         border_pad + border,
                         "\n",
                     ]
-                    emitted = "\n".join(lines)
                     emit_event(
                         conn,
                         event_type="global",
                         sender_id=character["id"],
-                        message=emitted,
+                        message="\n".join(lines),
                     )
 
                     return character["id"]

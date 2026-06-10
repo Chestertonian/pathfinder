@@ -45,6 +45,8 @@ def emit_event(
     color: str = "white",
     use_border: bool = False,
     style: str = "plain_centered",
+    
+    guild: str = None,
 ) -> None:
     """
     Create a new event row.
@@ -75,9 +77,10 @@ def emit_event(
                 message,
                 color,
                 use_border,
-                style
+                style,
+                guild
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
             (
                 event_type,
@@ -89,6 +92,7 @@ def emit_event(
                 color,
                 use_border,
                 style,
+                guild
             ),
         )
     conn.commit()
@@ -124,7 +128,8 @@ def get_visible_events(
                 color,
                 use_border,
                 style,
-                created_at
+                created_at,
+                guild
             FROM broadcast_messages
             WHERE id > %s
             ORDER BY id ASC
@@ -157,6 +162,13 @@ def should_deliver(character, event: Event) -> bool:
     # -------------------------------------------------------
     if event.event_type == "global":
         return True
+    
+    # -------------------------------------------------------
+    # Guild events
+    # -------------------------------------------------------    
+    
+    if event.event_type == "guild":
+        return character.char_class == event.guild
 
     # -------------------------------------------------------
     # Room events

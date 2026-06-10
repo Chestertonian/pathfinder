@@ -67,6 +67,7 @@ from commands.give import GiveCommand
 
 from commands.economy import WithdrawCommand, DepositCommand, WealthCommand
 from commands.shop import BuyCommand, SellCommand, ListCommand
+from commands.ring import RingCommand
 
 from commands.bulletinboard import WriteCommand, SubjectsCommand, EraseCommand
 
@@ -196,6 +197,7 @@ COMMANDS = {
     "tailor":   PowerCommand("tailor"),
     "ordernumber": PowerCommand("ordernumber"),
     "dyecast":   PowerCommand("dyecast"),
+    "slash":     PowerCommand("slash"),
     "subjects": SubjectsCommand(),
     "write": WriteCommand(),
     "erase": EraseCommand(),
@@ -212,6 +214,7 @@ COMMANDS = {
     "buy":      BuyCommand(),
     "sell":     SellCommand(),
     "give":     GiveCommand(),
+    "ring":     RingCommand(),
     
 }
 

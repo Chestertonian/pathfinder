@@ -148,7 +148,6 @@ def _do_unequip(conn, character, instance_id):
 # ---------------------------------------------------------------------------
 # Commands
 # ---------------------------------------------------------------------------
-
 class EquipCommand:
     def execute(self, character, conn, args, session):
         if not args:
@@ -161,6 +160,8 @@ class EquipCommand:
             return f"You don't have '{item_name}' in your inventory.\n"
 
         instance_id, template_id, item_type, name = row
+        color = _get_item_color(conn, instance_id)
+        colored_name = colorize(name, color)
 
         if item_type == 'clothing':
             clothing = _get_clothing_template(conn, template_id)
@@ -173,8 +174,8 @@ class EquipCommand:
             conn.commit()
             emit_event(conn, event_type="room", location_id=character.location_id,
                        sender_id=character.id,
-                       message=f"{character.name} puts on {name}.")
-            return f"You put on {name}.\n"
+                       message=f"{character.name} puts on {colored_name}.")
+            return f"You put on {colored_name}.\n"
 
         slot = _get_item_slot(conn, template_id, item_type)
         if not slot:
@@ -207,8 +208,8 @@ class EquipCommand:
         verb = "wield" if slot in ('weapon', 'offhand') else "wear"
         emit_event(conn, event_type="room", location_id=character.location_id,
                    sender_id=character.id,
-                   message=f"{character.name} equips {name}.")
-        return f"You {verb} {name}.\n"
+                   message=f"{character.name} {verb}s {name}.")
+        return f"You {verb} {colored_name}.\n"
 
     def _equip_all(self, character, conn, session):
         with conn.cursor() as cur:
@@ -231,41 +232,50 @@ class EquipCommand:
         lines = []
 
         for instance_id, template_id, item_type, name in items:
+            color = _get_item_color(conn, instance_id)
+            colored_name = colorize(name, color)
+
             if item_type == 'clothing':
                 clothing = _get_clothing_template(conn, template_id)
                 if not clothing:
                     continue
                 if clothing_count >= CLOTHING_LIMIT:
-                    lines.append(f"  {name}: too many clothing items worn.")
+                    lines.append(f"  {colored_name}: too many clothing items worn.")
                     continue
                 _do_equip(conn, character, instance_id, slot=None)
                 clothing_count += 1
-                lines.append(f"  {name}: worn.")
+                lines.append(f"  {colored_name}: worn.")
                 continue
 
             slot = _get_item_slot(conn, template_id, item_type)
             if not slot:
                 continue
             if not _check_race_allowed(conn, template_id, character.race):
-                lines.append(f"  {name}: your race cannot wear this.")
+                lines.append(f"  {colored_name}: your race cannot wear this.")
                 continue
             if item_type == 'weapon':
                 primary = _get_slot_occupant(conn, character, 'weapon')
                 if primary:
                     offhand = _get_slot_occupant(conn, character, 'offhand')
                     if offhand:
-                        lines.append(f"  {name}: no free weapon slots.")
+                        lines.append(f"  {colored_name}: no free weapon slots.")
                         continue
                     slot = 'offhand'
             occupant = _get_slot_occupant(conn, character, slot)
             if occupant:
-                lines.append(f"  {name}: {slot} already occupied by {occupant[1]}.")
+                lines.append(f"  {colored_name}: {slot} already occupied by {occupant[1]}.")
                 continue
             _do_equip(conn, character, instance_id, slot)
             verb = "wielded" if slot in ('weapon', 'offhand') else "worn"
-            lines.append(f"  {name}: {verb}.")
+            lines.append(f"  {colored_name}: {verb}.")
 
         conn.commit()
+
+        # Single room emit summarizing the bulk equip
+        emit_event(conn, event_type="room", location_id=character.location_id,
+                   sender_id=character.id,
+                   message=f"{character.name} equips their gear.")
+
         return "Equipping inventory:\n" + "\n".join(lines) + "\n"
 
 
@@ -280,13 +290,16 @@ class RemoveCommand:
             return f"You aren't wearing '{item_name}'.\n"
 
         instance_id, template_id, item_type, name, slot = row
+        color = _get_item_color(conn, instance_id)
+        colored_name = colorize(name, color)
+
         _do_unequip(conn, character, instance_id)
         conn.commit()
 
         emit_event(conn, event_type="room", location_id=character.location_id,
                    sender_id=character.id,
-                   message=f"{character.name} removes {name}.")
-        return f"You remove {name}.\n"
+                   message=f"{character.name} removes {colored_name}.")
+        return f"You remove {colored_name}.\n"
 
 
 class UnequipCommand:
@@ -315,8 +328,17 @@ class UnequipCommand:
             """, (character.id,))
         conn.commit()
 
-        names = ", ".join(row[1] for row in items)
-        return f"You remove {names}.\n"
+        emit_event(conn, event_type="room", location_id=character.location_id,
+                   sender_id=character.id,
+                   message=f"{character.name} removes all their gear.")
+
+        # Color each item name in the confirmation
+        colored_names = []
+        for instance_id, name in items:
+            color = _get_item_color(conn, instance_id)
+            colored_names.append(colorize(name, color))
+
+        return f"You remove {', '.join(colored_names)}.\n"
 
 
 class EqCommand:

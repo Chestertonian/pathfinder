@@ -56,5 +56,8 @@ def render_event(conn, event):
 
     if event.event_type == "combat":
         return (f"{event.message}\n")
+    
+    if event.event_type == "guild":
+        return to_ansi(f"[bright_yellow]{event.message}[/bright_yellow]")
 
     return event.message + "\n"
