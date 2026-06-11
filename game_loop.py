@@ -77,6 +77,8 @@ from commands.arrest import ArrestCommand
 
 from commands.introduce import IntroduceCommand
 
+from commands.gossip import GossipCommand
+
 # ---------------------------------------------------------------------------
 # Direction aliases
 # ---------------------------------------------------------------------------
@@ -223,6 +225,7 @@ COMMANDS = {
     "give":     GiveCommand(),
     "ring":     RingCommand(),
     "arrest":   ArrestCommand(),
+    "gossip":   GossipCommand(),
     
 }
 
