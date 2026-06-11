@@ -1,5 +1,5 @@
 """
-client.py — Game client
+client.py — Game client.
 """
 
 import socket
@@ -85,7 +85,7 @@ def main():
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((args.host, args.port))
     except ConnectionRefusedError:
-        print("Could not connect. Is the server running?")
+        print("Could not connect. Server may be down.")
         sys.exit(1)
 
     print("Connected.\n")
