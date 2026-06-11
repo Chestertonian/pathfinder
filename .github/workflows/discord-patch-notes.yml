@@ -9,18 +9,14 @@ jobs:
 
     steps:
       - name: Send to Discord
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
           COMMIT_MSG="${{ github.event.head_commit.message }}"
           AUTHOR="${{ github.actor }}"
           BRANCH="${{ github.ref_name }}"
 
-          PAYLOAD=$(jq -n \
-            --arg msg "$COMMIT_MSG" \
-            --arg author "$AUTHOR" \
-            --arg branch "$BRANCH" \
-            '{content: "[" + $branch + "] " + $author + ": " + $msg}')
-
           curl -H "Content-Type: application/json" \
             -X POST \
-            -d "$PAYLOAD" \
-            ${{ secrets.DISCORD_WEBHOOK_URL }}
+            -d "{\"content\":\"[${BRANCH}] ${AUTHOR}: ${COMMIT_MSG}\"}" \
+            "$DISCORD_WEBHOOK_URL"
