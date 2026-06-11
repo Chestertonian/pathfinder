@@ -41,7 +41,7 @@ class ShutdownCommand:
                     cur.execute("UPDATE characters SET is_logged_in = FALSE")
                 c.commit()
 
-            os.kill(os.getpid(), signal.SIGINT)
+            os.kill(os.getpid(), signal.SIGTERM)
 
         if delay:
             threading.Timer(delay, _do_shutdown).start()

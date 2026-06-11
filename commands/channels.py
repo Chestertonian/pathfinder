@@ -30,7 +30,7 @@ def _check_title(title_value):
 def _check_council(character) -> bool:
     if not character.title_name:
         return False
-    if "Guildmaster" not in character.title_name:
+    if "Guildmaster" not in character.title_name.capitalize():
         return False
     if "Head Marshall" not in character.title_name:
         return False
@@ -45,7 +45,7 @@ CHANNELS = {
     "question":   ("Question",   lambda c: True,              "green"),
     "northlands": ("Northlands", lambda c: True,              "blue"),
     "justice":    ("Justice",    _check_justice,               "red"),
-    "world":      ("World",      _check_staff,              "yellow"),
+    "world":      ("World",      lambda c: True,              "yellow"), # need to ensure that only some people can send on this.
     "merchant":   ("Merchant",   _check_class("merchant"),    "cyan"),
     "fighter":    ("Fighter",    _check_class("fighter"),     "cyan"),
     "wizard":     ("Wizard",     _check_class("wizard"),      "cyan"),
