@@ -99,6 +99,72 @@ def handle_move(character, conn, args, session):
 
     session.send(f"You move {target_name} to the {destination_key}.\n")
     
+    
+def handle_release(character, conn, args, session):
+    if not is_marshal(character):
+        session.send("You don't have the authority to release prisoners.\n")
+        return
+
+    if not args:
+        session.send("Release who?\n")
+        return
+
+    target_name = args[0].capitalize()
+
+    with conn.cursor() as cur:
+        cur.execute(
+            "SELECT id, name, location_id, is_detained FROM characters WHERE LOWER(name) = LOWER(%s)",
+            (target_name,)
+        )
+        row = cur.fetchone()
+
+    if not row:
+        session.send(f"No character named '{target_name}' exists.\n")
+        return
+
+    target_id, target_name, target_location_id, target_is_detained = row
+
+    if target_location_id != character.location_id:
+        session.send(f"{target_name} is not here.\n")
+        return
+
+    if not target_is_detained:
+        session.send(f"{target_name} is not detained.\n")
+        return
+
+    with conn.cursor() as cur:
+        cur.execute(
+            "UPDATE characters SET is_detained = FALSE WHERE id = %s",
+            (target_id,)
+        )
+    conn.commit()
+
+    session.send(f"You release {target_name}.\n")
+
+    emit_event(
+        conn,
+        event_type="room",
+        location_id=character.location_id,
+        sender_id=character.id,
+        message=f"Marshall {character.name} releases {target_name}.",
+    )
+
+    emit_event(
+        conn,
+        event_type="system",
+        sender_id=target_id,
+        message="You have been released.",
+    )
+    
+    
 REGISTRY = {
     "move": handle_move,
+    "release": handle_release,
 }
+
+def on_command(character, room, verb, args, conn, session):
+    handler = REGISTRY.get(verb)
+    if handler is None:
+        return False
+    handler(character, conn, args, session)
+    return True

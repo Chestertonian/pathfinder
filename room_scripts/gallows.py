@@ -39,8 +39,10 @@ def handle_execute(character, conn, args, session):
     # Kill the prisoner, crediting "Gallows" as the killer
     resolve_death(
         conn=conn,
-        character_id=target_id,
-        killer_name="Gallows",
+        dead_id=target_id,
+        dead_type = 'character',
+        killer_type="npc",
+        killer_id=49,
         location_id=GALLOWS_ROOM_ID,
     )
 
@@ -58,3 +60,10 @@ def handle_execute(character, conn, args, session):
 REGISTRY = {
     "execute": handle_execute,
 }
+
+def on_command(character, room, verb, args, conn, session):
+    handler = REGISTRY.get(verb)
+    if handler is None:
+        return False
+    handler(character, conn, args, session)
+    return True

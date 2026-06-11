@@ -73,6 +73,8 @@ from commands.bulletinboard import WriteCommand, SubjectsCommand, EraseCommand
 
 from commands.scribe import ScribeCommand
 
+from commands.arrest import ArrestCommand
+
 
 # ---------------------------------------------------------------------------
 # Direction aliases
@@ -138,7 +140,10 @@ COMMANDS = {
     "staff": ChannelCommand("staff"),
     "council": ChannelCommand("council"),
     "world": ChannelCommand("world"),
+    "ooc": ChannelCommand("ooc"),
+    "justice": ChannelCommand("justice"),
     "northlands": ChannelCommand("northlands"),
+    "question": ChannelCommand("question"),
     "smile": EmoteCommand("smile"),
     "nod": EmoteCommand("nod"),
     "bow": EmoteCommand("bow"),
@@ -215,6 +220,7 @@ COMMANDS = {
     "sell":     SellCommand(),
     "give":     GiveCommand(),
     "ring":     RingCommand(),
+    "arrest":   ArrestCommand(),
     
 }
 

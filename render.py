@@ -42,7 +42,7 @@ def render_event(conn, event):
         return (to_ansi(event.message))
 
     if event.event_type == "channel":
-        channel = (event.channel or "chat").capitalize()
+        channel = (event.channel or "chat")
         color = event.color or "cyan"
 
         # Emotes are prefixed with [ChannelName] and have no speaker tag

@@ -121,7 +121,7 @@ def _regen_players(conn):
                 gain = SP_REGEN_SETTLEMENT
             else:
                 gain = SP_REGEN_NORMAL
-            new_ep = min(sp_max, sp + gain)
+            new_sp = min(sp_max, sp + gain)
 
             # --- EP ---
             if in_combat:

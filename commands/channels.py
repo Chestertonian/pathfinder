@@ -16,6 +16,10 @@ def _check_class(class_name):
 def _check_staff(character):
     return character.is_staff
 
+def _check_justice(character) -> bool:
+    if character.title_name.lower() not in ('marshal', 'head marshal'):
+        return False
+    return True
 
 def _check_title(title_value):
     def check(character):
@@ -28,14 +32,19 @@ def _check_council(character) -> bool:
         return False
     if "Guildmaster" not in character.title_name:
         return False
+    if "Head Marshall" not in character.title_name:
+        return False
     if (character.title_guild or "").lower() == "thief":
         return False
     return True
 
 
 CHANNELS = {
-    "chat":       ("Chat",       lambda c: True,              "green"),
+    "ooc":        ("OOC",        lambda c: True,              "yellow"),
+    "chat":       ("Chat",       lambda c: True,              "purple"),
+    "question":   ("Question",   lambda c: True,              "green"),
     "northlands": ("Northlands", lambda c: True,              "blue"),
+    "justice":    ("Justice",    _check_justice,               "red"),
     "world":      ("World",      _check_staff,              "yellow"),
     "merchant":   ("Merchant",   _check_class("merchant"),    "cyan"),
     "fighter":    ("Fighter",    _check_class("fighter"),     "cyan"),
@@ -43,7 +52,7 @@ CHANNELS = {
     "cleric":     ("Cleric",     _check_class("cleric"),      "cyan"),
     "thief":      ("Thief",      _check_class("thief"),       "cyan"),
     "ranger":     ("Ranger",     _check_class("ranger"),      "cyan"),
-    "staff":      ("Staff",      _check_staff,                "purple"),
+    "staff":      ("Staff",      _check_staff,                "dark_black"),
     "council":    ("Council",    _check_council,              "bright_yellow"),
 }
 

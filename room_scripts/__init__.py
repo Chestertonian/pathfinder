@@ -5,9 +5,17 @@ from justice.constants import OFFICE_ROOM_ID, JAIL_ROOM_ID, COURT_ROOM_ID, GALLO
 import room_scripts.justice_office as justice_office
 import room_scripts.justice_move   as justice_move
 import room_scripts.gallows as justice_gallows
+import room_scripts.fighters_guild as fighters_guild
 
 class _GallowsCombined:
     REGISTRY = {**justice_move.REGISTRY, **justice_gallows.REGISTRY}
+
+    def on_command(self, character, room, verb, args, conn, session):
+        handler = self.REGISTRY.get(verb)
+        if handler is None:
+            return False
+        handler(character, conn, args, session)
+        return True
 
 gallows_combined = _GallowsCombined()
 
@@ -17,6 +25,7 @@ REGISTRY = {
     "prison_move":    justice_move,
     "court_move":   justice_move,
     "gallows": gallows_combined,
+    "fighters_guild": fighters_guild,
 }
 
 def get_script(key):
