@@ -30,13 +30,10 @@ def _check_title(title_value):
 def _check_council(character) -> bool:
     if not character.title_name:
         return False
-    if "Guildmaster" not in character.title_name.capitalize():
-        return False
-    if "Head Marshall" not in character.title_name:
-        return False
-    if (character.title_guild or "").lower() == "thief":
-        return False
-    return True
+    title = character.title_name 
+    is_guildmaster = "guildmaster" in title.lower() and (character.title_guild or "").lower() != "thief"
+    is_head_marshal = "head marshal" in title.lower()
+    return is_guildmaster or is_head_marshal
 
 
 CHANNELS = {
@@ -56,6 +53,9 @@ CHANNELS = {
     "council":    ("Council",    _check_council,              "bright_yellow"),
 }
 
+SEND_OVERRIDES = {
+    "world": _check_staff,
+}
 
 class ChannelCommand:
     
@@ -69,6 +69,10 @@ class ChannelCommand:
             return f"Unknown channel '{self.channel_name}'."
 
         display_name, access_check, color = entry
+        
+        send_check = SEND_OVERRIDES.get(self.channel_name, access_check)
+        if not send_check(character):
+            return f"You don't have access to the {display_name} channel."
 
         if not access_check(character):
             return f"You don't have access to the {display_name} channel."
