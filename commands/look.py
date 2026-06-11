@@ -9,6 +9,8 @@ from output import to_ansi, colorize, _get_item_color
 
 from events import emit_event
 
+from social import visible_name
+
 IRREGULAR_PLURALS = {
     "wolf": "wolves",
     "ox": "oxen",
@@ -108,7 +110,7 @@ def _describe_room(character, conn) -> str:
             
     if players:
         for player in players:
-            lines.append(f"{player['name'].capitalize()}.")
+            lines.append(visible_name(character.id, player, conn))
         lines.append("\n")
 
     if npcs:

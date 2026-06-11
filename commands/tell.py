@@ -2,7 +2,7 @@
 
 from output import console
 from events import emit_event
-
+from social import already_introduced
 
 class TellCommand:
     def execute(self, character, conn, args, session):
@@ -27,9 +27,16 @@ class TellCommand:
             return f"No player named '{target_name}'."
 
         target_id, is_logged_in = row  # unpack both fields
-
+        
         if target_id == character.id:
             return "You talk to yourself. It echoes strangely."
+        
+        # After resolving the target character...
+        if not already_introduced(character.id, target_id, conn):
+            session.send(f"You don't know anyone called '{target_name}'.\n")
+            return
+
+
 
         if not is_logged_in:
             return f"{target_name.capitalize()} is not in the world right now."

@@ -75,6 +75,7 @@ from commands.scribe import ScribeCommand
 
 from commands.arrest import ArrestCommand
 
+from commands.introduce import IntroduceCommand
 
 # ---------------------------------------------------------------------------
 # Direction aliases
@@ -128,6 +129,7 @@ COMMANDS = {
     "emote": EmCommand(),
     "tell": TellCommand(),
     "ask": AskCommand(),
+    "introduce": IntroduceCommand(),
     "history": HistoryCommand(),
     "chat": ChannelCommand("chat"),
     "merchant": ChannelCommand("merchant"),
