@@ -1,0 +1,43 @@
+name: Patch Notes to Discord
+
+on:
+  push:
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Send formatted patch note
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+        run: |
+          AUTHOR="${{ github.actor }}"
+          BRANCH="${{ github.ref_name }}"
+          MESSAGE="${{ github.event.head_commit.message }}"
+          HASH="${{ github.sha }}"
+
+          SHORT_HASH=$(echo "$HASH" | cut -c1-7)
+
+          PAYLOAD=$(jq -n \
+            --arg author "$AUTHOR" \
+            --arg branch "$BRANCH" \
+            --arg msg "$MESSAGE" \
+            --arg hash "$SHORT_HASH" \
+            '{
+              content: (
+                "**Patch Update**\n" +
+                "```diff\n" +
+                "+ Author: " + $author + "\n" +
+                "+ Branch: " + $branch + "\n" +
+                "+ Commit: " + $hash + "\n" +
+                "```\n" +
+                "**Message:** " + $msg
+              )
+            }')
+
+          curl -H "Content-Type: application/json" \
+            -X POST \
+            -d "$PAYLOAD" \
+            "$DISCORD_WEBHOOK_URL"
