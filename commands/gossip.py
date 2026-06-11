@@ -86,7 +86,7 @@ class GossipCommand:
             disclaimer = f" I don't know how reliable this is because {author_name} told me about it."
 
         session.send(
-            f"Mara turns to you and says, \"I heard that {message}.{disclaimer}\"\n"
+            f"Mara turns to you and says, \"{message} {disclaimer}\"\n"
         )
         
     def _mara_present(self, character, conn):
