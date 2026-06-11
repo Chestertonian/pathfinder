@@ -110,7 +110,7 @@ def _describe_room(character, conn) -> str:
             
     if players:
         for player in players:
-            lines.append(visible_name(character.id, player, conn))
+            lines.append(f"{player['name'].capitalize()}.")
         lines.append("\n")
 
     if npcs:

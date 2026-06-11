@@ -11,24 +11,28 @@ def visible_name(viewer_id: int, target, conn) -> str:
     """
     Returns the target's real name if the viewer has been introduced,
     otherwise returns a generic description like "Male human".
-
-    target must have: .id, .name, .gender, .race
     """
-    if viewer_id == target.id:
-        return target.name
+
+    target_id = _get_attr(target, "id")
+    target_name = _get_attr(target, "name")
+    target_gender = _get_attr(target, "gender")
+    target_race = _get_attr(target, "race")
+
+    if viewer_id == target_id:
+        return target_name
 
     with conn.cursor() as cur:
         cur.execute("""
             SELECT 1 FROM character_introductions
             WHERE character_id = %s AND known_character_id = %s
-        """, (viewer_id, target.id))
+        """, (viewer_id, target_id))
         if cur.fetchone():
-            return target.name
+            return target_name
 
-    prefix = GENDER_PREFIX.get(target.gender, "")
-    race = target.race.capitalize()
+    prefix = GENDER_PREFIX.get(target_gender, "")
+    race = (target_race or "").capitalize()
+
     return f"{prefix} {race}".strip()
-
 
 def already_introduced(viewer_id: int, target_id: int, conn) -> bool:
     with conn.cursor() as cur:
@@ -37,3 +41,8 @@ def already_introduced(viewer_id: int, target_id: int, conn) -> bool:
             WHERE character_id = %s AND known_character_id = %s
         """, (viewer_id, target_id))
         return cur.fetchone() is not None
+    
+def _get_attr(obj, key, default=None):
+    if isinstance(obj, dict):
+        return obj.get(key, default)
+    return getattr(obj, key, default)
