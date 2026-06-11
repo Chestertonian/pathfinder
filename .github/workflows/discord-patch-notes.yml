@@ -1,4 +1,4 @@
-name: Send commits to Discord
+name: Discord Patch Notes
 
 on:
   push:
@@ -8,15 +8,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Send to Discord
+      - name: Send commit to Discord
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
-          COMMIT_MSG="${{ github.event.head_commit.message }}"
-          AUTHOR="${{ github.actor }}"
-          BRANCH="${{ github.ref_name }}"
-
           curl -H "Content-Type: application/json" \
             -X POST \
-            -d "{\"content\":\"[${BRANCH}] ${AUTHOR}: ${COMMIT_MSG}\"}" \
+            -d '{"content":"test commit from GitHub Actions"}' \
             "$DISCORD_WEBHOOK_URL"
