@@ -89,15 +89,15 @@ class GossipCommand:
             f"Mara turns to you and says, \"I heard that {message}.{disclaimer}\"\n"
         )
         
-def _mara_present(self, character, conn):
-    with conn.cursor() as cur:
-        cur.execute("""
-            SELECT id FROM npc_instances
-            WHERE npc_template_id = %s
-              AND location_id = %s
-              AND is_alive = TRUE
-            LIMIT 1
-        """, (MARA_TEMPLATE_ID, character.location_id))
-        return cur.fetchone() is not None
+    def _mara_present(self, character, conn):
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT id FROM npc_instances
+                WHERE npc_template_id = %s
+                AND location_id = %s
+                AND is_alive = TRUE
+                LIMIT 1
+            """, (MARA_TEMPLATE_ID, character.location_id))
+            return cur.fetchone() is not None
 
 
